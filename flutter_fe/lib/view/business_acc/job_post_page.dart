@@ -20,6 +20,7 @@ import 'package:flutter_fe/controller/task_controller.dart';
 import 'package:flutter_fe/controller/profile_controller.dart';
 import 'package:flutter_fe/service/client_service.dart';
 import 'package:flutter_fe/service/job_post_service.dart';
+import 'package:flutter_fe/service/tasker_service.dart';
 import 'package:flutter_fe/model/auth_user.dart';
 import 'package:flutter_fe/model/task_model.dart';
 import 'package:flutter_fe/view/business_acc/business_task_detail.dart';
@@ -71,6 +72,9 @@ class _JobPostPageState extends State<JobPostPage>
   bool _isLoading = true;
   final bool _showButton = false;
   bool _isUploadDialogShown = false;
+
+  // Add tasker profile images cache
+  final Map<int, String> _taskerProfileImages = {};
 
   VerificationModel? _existingVerification;
   String? _verificationStatus;
@@ -278,6 +282,21 @@ class _JobPostPageState extends State<JobPostPage>
 
       // Load cached verification status
       _verificationStatus = _prefs.getString('cached_verification_status');
+
+      // Load cached tasker profile images
+      final cachedTaskerImages =
+          _prefs.getString('cached_tasker_profile_images');
+      if (cachedTaskerImages != null) {
+        final Map<String, dynamic> imageData = json.decode(cachedTaskerImages);
+        setState(() {
+          _taskerProfileImages.clear();
+          imageData.forEach((key, value) {
+            _taskerProfileImages[int.parse(key)] = value.toString();
+          });
+          debugPrint(
+              "Loaded ${_taskerProfileImages.length} tasker profile images from cache");
+        });
+      }
     } catch (e) {
       debugPrint("Error loading cached data: $e");
     }
@@ -307,6 +326,13 @@ class _JobPostPageState extends State<JobPostPage>
             'cached_verification_status', _verificationStatus!);
         debugPrint("Saved verification status to cache");
       }
+
+      if (_taskerProfileImages.isNotEmpty) {
+        await _prefs.setString(
+            'cached_tasker_profile_images', json.encode(_taskerProfileImages));
+        debugPrint(
+            "Saved ${_taskerProfileImages.length} tasker profile images to cache");
+      }
     } catch (e) {
       debugPrint("Error saving data to cache: $e");
     }
@@ -320,6 +346,10 @@ class _JobPostPageState extends State<JobPostPage>
         _fetchTasksStatus(),
         _checkVerificationStatus(),
       ]);
+      // Fetch tasker profile images after tasks are loaded
+      if (_clientTasksTasker.isNotEmpty) {
+        await _fetchTaskerProfileImages();
+      }
       await _saveDataToCache();
     } else {
       await _loadCachedData();
@@ -368,7 +398,7 @@ class _JobPostPageState extends State<JobPostPage>
     try {
       final tasks = await _taskController.getTaskClient(context);
 
-      debugPrint('Fetched ${tasks.length} tasks for status view ito');
+      debugPrint('Fetched ${tasks.length} tasks for status view');
       setState(() {
         _clientTasksTasker = tasks as List<TaskFetch>;
         _filteredTasksStatus = List.from(_clientTasksTasker);
@@ -376,13 +406,186 @@ class _JobPostPageState extends State<JobPostPage>
       });
 
       debugPrint(
-          'Fetched ${_clientTasksTasker.length} tasks for status view po');
+          'Set ${_clientTasksTasker.length} tasks in _clientTasksTasker');
+
+      // Debug first few tasks
+      for (int i = 0; i < _clientTasksTasker.length && i < 3; i++) {
+        final task = _clientTasksTasker[i];
+        debugPrint('Task $i: ${task.toString()}');
+      }
     } catch (e, stackTrace) {
       debugPrint('Error while rendering tasks for status view: $e');
       debugPrintStack(stackTrace: stackTrace);
       _showErrorSnackBar(
           'An error occurred while displaying your tasks. Please Try Again.');
     }
+  }
+
+  // Fetch tasker profile images for all taskers in the task list
+  Future<void> _fetchTaskerProfileImages() async {
+    try {
+      debugPrint("Starting to fetch profile images for taskers in task list");
+      debugPrint("_clientTasksTasker length: ${_clientTasksTasker.length}");
+      final Set<int> taskerIds = {};
+
+      // Collect unique tasker IDs from the task list
+      for (final task in _clientTasksTasker) {
+        debugPrint(
+            "Task ${task.id}: tasker=${task.tasker}, taskerId=${task.taskerId}");
+        debugPrint("Task ${task.id}: tasker.user=${task.tasker?.user}");
+        debugPrint("Task ${task.id}: tasker.user.id=${task.tasker?.user?.id}");
+
+        int? taskerId;
+
+        // Try different ways to get the tasker ID
+        if (task.tasker?.user?.id != null) {
+          taskerId = task.tasker!.user!.id!;
+          debugPrint("✅ Found tasker ID via task.tasker.user.id: $taskerId");
+        } else if (task.taskerId != null) {
+          taskerId = task.taskerId!;
+          debugPrint("✅ Found tasker ID via task.taskerId: $taskerId");
+        } else if (task.tasker?.userId != null) {
+          taskerId = task.tasker!.userId;
+          debugPrint("✅ Found tasker ID via task.tasker.userId: $taskerId");
+        }
+
+        if (taskerId != null) {
+          taskerIds.add(taskerId);
+          debugPrint("Added tasker ID: $taskerId");
+        } else {
+          debugPrint("❌ Task ${task.id} has no tasker ID available");
+        }
+      }
+
+      debugPrint(
+          "Found ${taskerIds.length} unique taskers to fetch images for: $taskerIds");
+
+      for (final taskerId in taskerIds) {
+        // Skip if already cached
+        if (_taskerProfileImages.containsKey(taskerId)) {
+          debugPrint("Tasker $taskerId image already cached");
+          continue;
+        }
+
+        try {
+          debugPrint("Fetching images for tasker ID: $taskerId");
+          final taskerService = TaskerService();
+          final result = await taskerService.getTaskerImages(taskerId);
+          debugPrint("Raw result for tasker $taskerId: $result");
+
+          if (result.containsKey('images') && result['images'] is List) {
+            final List<dynamic> images = result['images'];
+            debugPrint("Found ${images.length} images for tasker $taskerId");
+
+            if (images.isNotEmpty) {
+              final firstImage = images.first;
+              debugPrint("First image data: $firstImage");
+
+              if (firstImage is Map && firstImage['image_link'] != null) {
+                final imageUrl = firstImage['image_link'];
+                if (mounted) {
+                  setState(() {
+                    _taskerProfileImages[taskerId] = imageUrl;
+                  });
+                }
+                debugPrint(
+                    "✅ Successfully set profile image for tasker $taskerId: $imageUrl");
+              } else {
+                debugPrint(
+                    "❌ First image is not a Map or image_link is null for tasker $taskerId");
+              }
+            } else {
+              debugPrint("❌ No images found for tasker $taskerId");
+            }
+          } else {
+            debugPrint(
+                "❌ Result doesn't contain 'images' key or it's not a List for tasker $taskerId");
+          }
+        } catch (e) {
+          debugPrint("❌ Error fetching profile image for tasker $taskerId: $e");
+        }
+      }
+
+      debugPrint(
+          "Finished fetching profile images. Total cached: ${_taskerProfileImages.length}");
+      debugPrint("Cached images: $_taskerProfileImages");
+    } catch (e) {
+      debugPrint("Error in _fetchTaskerProfileImages: $e");
+    }
+  }
+
+  // Fetch individual tasker profile image on-demand
+  Future<void> _fetchSingleTaskerImage(int taskerId) async {
+    if (_taskerProfileImages.containsKey(taskerId)) {
+      return; // Already cached
+    }
+
+    try {
+      debugPrint("Lazy loading image for tasker ID: $taskerId");
+      final taskerService = TaskerService();
+      final result = await taskerService.getTaskerImages(taskerId);
+
+      if (result.containsKey('images') && result['images'] is List) {
+        final List<dynamic> images = result['images'];
+        if (images.isNotEmpty) {
+          final firstImage = images.first;
+          if (firstImage is Map && firstImage['image_link'] != null) {
+            final imageUrl = firstImage['image_link'];
+            if (mounted) {
+              setState(() {
+                _taskerProfileImages[taskerId] = imageUrl;
+              });
+            }
+            debugPrint("✅ Lazy loaded image for tasker $taskerId: $imageUrl");
+          }
+        }
+      }
+    } catch (e) {
+      debugPrint("❌ Error lazy loading image for tasker $taskerId: $e");
+    }
+  }
+
+  // Get tasker profile image decoration with priority logic (similar to home page)
+  DecorationImage? _getTaskerProfileImageDecoration(
+      TaskFetch task, int? taskerId) {
+    // Priority 1: Profile image from tasker_images table (cached)
+    if (taskerId != null && _taskerProfileImages.containsKey(taskerId)) {
+      final profileImageUrl = _taskerProfileImages[taskerId];
+      if (profileImageUrl != null && profileImageUrl.isNotEmpty) {
+        debugPrint(
+            "Using profile image from tasker_images for tasker $taskerId: $profileImageUrl");
+        return DecorationImage(
+          image: NetworkImage(profileImageUrl),
+          fit: BoxFit.cover,
+          onError: (exception, stackTrace) {
+            debugPrint('Error loading tasker profile image: $exception');
+            if (mounted) {
+              setState(() {
+                _taskerProfileImages.remove(taskerId); // Clear the failed URL
+              });
+            }
+          },
+        );
+      }
+    }
+
+    // Priority 2: Default user image from user.image field
+    final userImage = task.tasker?.user?.image ?? task.tasker?.user?.imageName;
+    if (userImage != null && userImage.isNotEmpty && userImage != "Unknown") {
+      debugPrint("Using default user image for tasker $taskerId: $userImage");
+      return DecorationImage(
+        image: NetworkImage(userImage),
+        fit: BoxFit.cover,
+        onError: (exception, stackTrace) {
+          debugPrint('Error loading default user image: $exception');
+          // Don't need to clear anything here since it's not cached
+        },
+      );
+    }
+
+    debugPrint(
+        "No valid image found for tasker $taskerId, showing person icon");
+    return null;
   }
 
   void _filterTasks() {
@@ -1264,9 +1467,21 @@ class _JobPostPageState extends State<JobPostPage>
   }
 
   Widget _buildTaskInfo(TaskFetch task, {double size = 40.0}) {
-    final imageUrl = task.tasker?.user?.image ?? 'Unknown';
-    final hasValidImage =
-        imageUrl != null && imageUrl.isNotEmpty && imageUrl != 'Unknown';
+    // Find the tasker ID using multiple fallback methods
+    int? taskerId;
+    if (task.tasker?.user?.id != null) {
+      taskerId = task.tasker!.user!.id!;
+    } else if (task.taskerId != null) {
+      taskerId = task.taskerId!;
+    } else if (task.tasker?.userId != null) {
+      taskerId = task.tasker!.userId;
+    }
+
+    // Try to lazy load the tasker image if not cached
+    if (taskerId != null && !_taskerProfileImages.containsKey(taskerId)) {
+      debugPrint("Attempting lazy load for tasker $taskerId");
+      _fetchSingleTaskerImage(taskerId);
+    }
 
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -1287,24 +1502,11 @@ class _JobPostPageState extends State<JobPostPage>
                   offset: const Offset(0, 2),
                 ),
               ],
+              image: _getTaskerProfileImageDecoration(task, taskerId),
             ),
-            child: hasValidImage
-                ? CachedNetworkImage(
-                    imageUrl: imageUrl,
-                    fit: BoxFit.cover,
-                    placeholder: (context, url) => const Center(
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: Color(0xFFB71A4A),
-                      ),
-                    ),
-                    errorWidget: (context, url, error) => const Icon(
-                      Icons.person,
-                      color: Colors.grey,
-                      size: 24,
-                    ),
-                  )
-                : const Icon(Icons.person, color: Colors.grey, size: 24),
+            child: _getTaskerProfileImageDecoration(task, taskerId) == null
+                ? const Icon(Icons.person, color: Colors.grey, size: 24)
+                : null,
           ),
         ),
         const SizedBox(width: 8),
