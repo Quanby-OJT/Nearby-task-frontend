@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_fe/model/task_assignment.dart';
 import 'package:flutter_fe/model/task_fetch.dart';
 import 'package:flutter_fe/view/chat/ind_chat_screen.dart';
+import 'package:flutter_fe/view/components/modals/dispute_bottom_sheet.dart';
 import 'package:flutter_fe/view/task/task_ongoing.dart';
 import 'package:flutter_fe/view/task/task_rejected.dart';
 import 'package:flutter_fe/view/task_user/user_feedback.dart';
@@ -1316,7 +1317,10 @@ class _TaskDeclinedState extends State<TaskDeclined> {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
-      builder: (childContext) => _buildDisputeBottomSheet(),
+      builder: (childContext) => DisputeBottomSheet(
+          taskInformation: _taskInformation!,
+          requestInformation: _requestInformation!
+      ),
     );
   }
 

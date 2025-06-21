@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_fe/view/components/modals/dispute_bottom_sheet.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_fe/controller/profile_controller.dart';
@@ -165,248 +166,251 @@ class _ClientOngoingState extends State<ClientOngoing> {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
-      builder: (childContext) => _buildDisputeBottomSheet(),
-    );
-  }
-
-  Widget _buildDisputeBottomSheet() {
-    return Padding(
-      padding: EdgeInsets.only(
-        bottom: MediaQuery.of(context).viewInsets.bottom,
-        left: 16,
-        right: 16,
-        top: 16,
-      ),
-      child: SingleChildScrollView(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Center(
-              child: Text(
-                'File a Dispute',
-                style: GoogleFonts.montserrat(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w600,
-                  color: Color(0xFF03045E),
-                ),
-              ),
-            ),
-            Center(
-              child: Text(
-                '* Required Fields',
-                style: GoogleFonts.montserrat(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                  color: Color(0xFFD43D4D),
-                ),
-              ),
-            ),
-            SizedBox(height: 16),
-            Text(
-              'Reason for Dispute *',
-              style: GoogleFonts.montserrat(
-                fontSize: 16,
-                fontWeight: FontWeight.w500,
-                color: Color(0xFF03045E),
-              ),
-            ),
-            SizedBox(height: 8),
-            DropdownButtonFormField<String>(
-              value: _disputeTypeController.text.isEmpty
-                  ? '--Select Reason of Dispute--'
-                  : _disputeTypeController.text,
-              items: <String>[
-                '--Select Reason of Dispute--',
-                'Poor Quality of Work',
-                'Breach of Contract',
-                'Task Still Not Completed',
-                'Tasker Did Not Finish what\'s Required',
-                'Others (Provide Details)'
-              ].map<DropdownMenuItem<String>>((String value) {
-                return DropdownMenuItem<String>(
-                  value: value,
-                  child:
-                      Text(value, style: GoogleFonts.montserrat(fontSize: 14)),
-                );
-              }).toList(),
-              onChanged: (String? newValue) {
-                setState(() {
-                  _disputeTypeController.text = newValue ?? '';
-                });
-              },
-              decoration: InputDecoration(
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: Colors.grey[300]!),
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: Colors.grey[300]!),
-                ),
-              ),
-            ),
-            SizedBox(height: 16),
-            Text(
-              'Details of the Dispute *',
-              style: GoogleFonts.montserrat(
-                fontSize: 16,
-                fontWeight: FontWeight.w500,
-                color: Color(0xFF03045E),
-              ),
-            ),
-            SizedBox(height: 8),
-            TextField(
-              controller: _disputeDetailsController,
-              maxLines: 3,
-              decoration: InputDecoration(
-                hintText: 'Provide Details About the Dispute',
-                hintStyle: GoogleFonts.montserrat(color: Colors.grey[400]),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: Colors.grey[300]!),
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: Colors.grey[300]!),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: Color(0xFF03045E)),
-                ),
-              ),
-              style: GoogleFonts.montserrat(fontSize: 14),
-            ),
-            SizedBox(height: 16),
-            Text(
-              'Provide some Evidence',
-              style: GoogleFonts.montserrat(
-                fontSize: 16,
-                fontWeight: FontWeight.w500,
-                color: Color(0xFF03045E),
-              ),
-            ),
-            SizedBox(height: 8),
-            GestureDetector(
-              onTap: _pickImage,
-              child: Container(
-                height: 120,
-                width: double.infinity,
-                decoration: BoxDecoration(
-                  border: Border.all(color: Colors.grey[300]!),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: _imageEvidence.isNotEmpty
-                    ? SizedBox(
-                        width: 300.0,
-                        child: GridView.builder(
-                          itemCount: _imageEvidence.length,
-                          gridDelegate:
-                              const SliverGridDelegateWithFixedCrossAxisCount(
-                            crossAxisCount: 3,
-                          ),
-                          itemBuilder: (BuildContext context, int index) {
-                            return Center(
-                              child: kIsWeb
-                                  ? Image.network(_imageEvidence[index].path)
-                                  : Image.file(_imageEvidence[index]),
-                            );
-                          },
-                        ),
-                      )
-                    : const Center(
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(FontAwesomeIcons.fileImage,
-                                size: 40, color: Colors.grey),
-                            SizedBox(width: 8),
-                            Text(
-                              'Upload Photos (Screenshots, Actual Work)',
-                              style:
-                                  TextStyle(fontSize: 16, color: Colors.grey),
-                            ),
-                          ],
-                        ),
-                      ),
-              ),
-            ),
-            SizedBox(height: 24),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: () async {
-                  setState(() {
-                    _isLoading = true;
-                    _fetchRequestDetails();
-                  });
-                  Navigator.pop(context);
-                  try {
-                    bool result = await taskController.raiseADispute(
-                      _requestInformation?.task_taken_id ?? 0,
-                      'Disputed',
-                      widget.role ?? '',
-                      _disputeTypeController.text,
-                      _disputeDetailsController.text,
-                      _imageEvidence,
-                    );
-
-                    if (result) {
-                      if (!mounted) return;
-                      setState(() {
-                        _requestStatus = 'Disputed';
-                      });
-                      // Navigator.push(
-                      //   context,
-                      //   MaterialPageRoute(
-                      //     builder: (context) => DisplayListRecordOngoing(),
-                      //   ),
-                      // );
-                    } else {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text(
-                              'Failed to raise dispute. Please Try Again.'),
-                        ),
-                      );
-                    }
-                  } catch (e, stackTrace) {
-                    debugPrint("Error raising dispute: $e.");
-                    debugPrintStack(stackTrace: stackTrace);
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('Error occurred')),
-                    );
-                  } finally {
-                    setState(() {
-                      _isLoading = false;
-                      _fetchRequestDetails();
-                    });
-                  }
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Color(0xFF03045E),
-                  padding: EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  elevation: 2,
-                ),
-                child: Text(
-                  'Open a Dispute',
-                  style: GoogleFonts.montserrat(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.white,
-                  ),
-                ),
-              ),
-            ),
-            SizedBox(height: 16),
-          ],
-        ),
+      builder: (childContext) => DisputeBottomSheet(
+          taskInformation: _taskInformation!,
+          requestInformation: _requestInformation!
       ),
     );
   }
+
+  // Widget _buildDisputeBottomSheet() {
+  //   return Padding(
+  //     padding: EdgeInsets.only(
+  //       bottom: MediaQuery.of(context).viewInsets.bottom,
+  //       left: 16,
+  //       right: 16,
+  //       top: 16,
+  //     ),
+  //     child: SingleChildScrollView(
+  //       child: Column(
+  //         mainAxisSize: MainAxisSize.min,
+  //         crossAxisAlignment: CrossAxisAlignment.start,
+  //         children: [
+  //           Center(
+  //             child: Text(
+  //               'File a Dispute',
+  //               style: GoogleFonts.montserrat(
+  //                 fontSize: 20,
+  //                 fontWeight: FontWeight.w600,
+  //                 color: Color(0xFF03045E),
+  //               ),
+  //             ),
+  //           ),
+  //           Center(
+  //             child: Text(
+  //               '* Required Fields',
+  //               style: GoogleFonts.montserrat(
+  //                 fontSize: 12,
+  //                 fontWeight: FontWeight.w600,
+  //                 color: Color(0xFFD43D4D),
+  //               ),
+  //             ),
+  //           ),
+  //           SizedBox(height: 16),
+  //           Text(
+  //             'Reason for Dispute *',
+  //             style: GoogleFonts.montserrat(
+  //               fontSize: 16,
+  //               fontWeight: FontWeight.w500,
+  //               color: Color(0xFF03045E),
+  //             ),
+  //           ),
+  //           SizedBox(height: 8),
+  //           DropdownButtonFormField<String>(
+  //             value: _disputeTypeController.text.isEmpty
+  //                 ? '--Select Reason of Dispute--'
+  //                 : _disputeTypeController.text,
+  //             items: <String>[
+  //               '--Select Reason of Dispute--',
+  //               'Poor Quality of Work',
+  //               'Breach of Contract',
+  //               'Task Still Not Completed',
+  //               'Tasker Did Not Finish what\'s Required',
+  //               'Others (Provide Details)'
+  //             ].map<DropdownMenuItem<String>>((String value) {
+  //               return DropdownMenuItem<String>(
+  //                 value: value,
+  //                 child:
+  //                     Text(value, style: GoogleFonts.montserrat(fontSize: 14)),
+  //               );
+  //             }).toList(),
+  //             onChanged: (String? newValue) {
+  //               setState(() {
+  //                 _disputeTypeController.text = newValue ?? '';
+  //               });
+  //             },
+  //             decoration: InputDecoration(
+  //               border: OutlineInputBorder(
+  //                 borderRadius: BorderRadius.circular(12),
+  //                 borderSide: BorderSide(color: Colors.grey[300]!),
+  //               ),
+  //               enabledBorder: OutlineInputBorder(
+  //                 borderRadius: BorderRadius.circular(12),
+  //                 borderSide: BorderSide(color: Colors.grey[300]!),
+  //               ),
+  //             ),
+  //           ),
+  //           SizedBox(height: 16),
+  //           Text(
+  //             'Details of the Dispute *',
+  //             style: GoogleFonts.montserrat(
+  //               fontSize: 16,
+  //               fontWeight: FontWeight.w500,
+  //               color: Color(0xFF03045E),
+  //             ),
+  //           ),
+  //           SizedBox(height: 8),
+  //           TextField(
+  //             controller: _disputeDetailsController,
+  //             maxLines: 3,
+  //             decoration: InputDecoration(
+  //               hintText: 'Provide Details About the Dispute',
+  //               hintStyle: GoogleFonts.montserrat(color: Colors.grey[400]),
+  //               border: OutlineInputBorder(
+  //                 borderRadius: BorderRadius.circular(12),
+  //                 borderSide: BorderSide(color: Colors.grey[300]!),
+  //               ),
+  //               enabledBorder: OutlineInputBorder(
+  //                 borderRadius: BorderRadius.circular(12),
+  //                 borderSide: BorderSide(color: Colors.grey[300]!),
+  //               ),
+  //               focusedBorder: OutlineInputBorder(
+  //                 borderRadius: BorderRadius.circular(12),
+  //                 borderSide: BorderSide(color: Color(0xFF03045E)),
+  //               ),
+  //             ),
+  //             style: GoogleFonts.montserrat(fontSize: 14),
+  //           ),
+  //           SizedBox(height: 16),
+  //           Text(
+  //             'Provide some Evidence',
+  //             style: GoogleFonts.montserrat(
+  //               fontSize: 16,
+  //               fontWeight: FontWeight.w500,
+  //               color: Color(0xFF03045E),
+  //             ),
+  //           ),
+  //           SizedBox(height: 8),
+  //           GestureDetector(
+  //             onTap: _pickImage,
+  //             child: Container(
+  //               height: 120,
+  //               width: double.infinity,
+  //               decoration: BoxDecoration(
+  //                 border: Border.all(color: Colors.grey[300]!),
+  //                 borderRadius: BorderRadius.circular(12),
+  //               ),
+  //               child: _imageEvidence.isNotEmpty
+  //                   ? SizedBox(
+  //                       width: 300.0,
+  //                       child: GridView.builder(
+  //                         itemCount: _imageEvidence.length,
+  //                         gridDelegate:
+  //                             const SliverGridDelegateWithFixedCrossAxisCount(
+  //                           crossAxisCount: 3,
+  //                         ),
+  //                         itemBuilder: (BuildContext context, int index) {
+  //                           return Center(
+  //                             child: kIsWeb
+  //                                 ? Image.network(_imageEvidence[index].path)
+  //                                 : Image.file(_imageEvidence[index]),
+  //                           );
+  //                         },
+  //                       ),
+  //                     )
+  //                   : const Center(
+  //                       child: Row(
+  //                         mainAxisAlignment: MainAxisAlignment.center,
+  //                         children: [
+  //                           Icon(FontAwesomeIcons.fileImage,
+  //                               size: 40, color: Colors.grey),
+  //                           SizedBox(width: 8),
+  //                           Text(
+  //                             'Upload Photos (Screenshots, Actual Work)',
+  //                             style:
+  //                                 TextStyle(fontSize: 16, color: Colors.grey),
+  //                           ),
+  //                         ],
+  //                       ),
+  //                     ),
+  //             ),
+  //           ),
+  //           SizedBox(height: 24),
+  //           SizedBox(
+  //             width: double.infinity,
+  //             child: ElevatedButton(
+  //               onPressed: () async {
+  //                 setState(() {
+  //                   _isLoading = true;
+  //                   _fetchRequestDetails();
+  //                 });
+  //                 Navigator.pop(context);
+  //                 try {
+  //                   bool result = await taskController.raiseADispute(
+  //                     _requestInformation?.task_taken_id ?? 0,
+  //                     'Disputed',
+  //                     widget.role ?? '',
+  //                     _disputeTypeController.text,
+  //                     _disputeDetailsController.text,
+  //                     _imageEvidence,
+  //                   );
+  //
+  //                   if (result) {
+  //                     if (!mounted) return;
+  //                     setState(() {
+  //                       _requestStatus = 'Disputed';
+  //                     });
+  //                     // Navigator.push(
+  //                     //   context,
+  //                     //   MaterialPageRoute(
+  //                     //     builder: (context) => DisplayListRecordOngoing(),
+  //                     //   ),
+  //                     // );
+  //                   } else {
+  //                     ScaffoldMessenger.of(context).showSnackBar(
+  //                       SnackBar(
+  //                         content: Text(
+  //                             'Failed to raise dispute. Please Try Again.'),
+  //                       ),
+  //                     );
+  //                   }
+  //                 } catch (e, stackTrace) {
+  //                   debugPrint("Error raising dispute: $e.");
+  //                   debugPrintStack(stackTrace: stackTrace);
+  //                   ScaffoldMessenger.of(context).showSnackBar(
+  //                     SnackBar(content: Text('Error occurred')),
+  //                   );
+  //                 } finally {
+  //                   setState(() {
+  //                     _isLoading = false;
+  //                     _fetchRequestDetails();
+  //                   });
+  //                 }
+  //               },
+  //               style: ElevatedButton.styleFrom(
+  //                 backgroundColor: Color(0xFF03045E),
+  //                 padding: EdgeInsets.symmetric(vertical: 16),
+  //                 shape: RoundedRectangleBorder(
+  //                   borderRadius: BorderRadius.circular(12),
+  //                 ),
+  //                 elevation: 2,
+  //               ),
+  //               child: Text(
+  //                 'Open a Dispute',
+  //                 style: GoogleFonts.montserrat(
+  //                   fontSize: 16,
+  //                   fontWeight: FontWeight.w600,
+  //                   color: Colors.white,
+  //                 ),
+  //               ),
+  //             ),
+  //           ),
+  //           SizedBox(height: 16),
+  //         ],
+  //       ),
+  //     ),
+  //   );
+  // }
 
   @override
   Widget build(BuildContext context) {
