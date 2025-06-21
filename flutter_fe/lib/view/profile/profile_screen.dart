@@ -12,6 +12,8 @@ import 'package:flutter_fe/controller/profile_controller.dart';
 import 'package:flutter_fe/model/auth_user.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:flutter_fe/service/job_post_service.dart';
+import 'package:flutter_fe/service/client_service.dart';
+import 'package:flutter_fe/service/tasker_service.dart';
 import 'package:flutter_fe/model/specialization.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter/services.dart';
@@ -55,6 +57,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
   String saveText = "Save";
   List<String> _selectedSkills = [];
   final updateTasker = GlobalKey<FormState>();
+  String?
+      _userProfileImageUrl; // Store profile image from client_images or tasker_images
 
   @override
   void initState() {
@@ -70,7 +74,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
     await Future.wait([
       _fetchUserData(),
       if (role == "Tasker") fetchSpecialization(),
-      if (role == "Tasker") getAllTaskerImages()
+      if (role == "Tasker") getAllTaskerImages(),
+      _fetchUserProfileImage(), // Fetch profile image from appropriate table
     ]);
 
     setState(() {
@@ -182,6 +187,71 @@ class _ProfileScreenState extends State<ProfileScreen> {
     });
   }
 
+  Future<void> _fetchUserProfileImage() async {
+    try {
+      final userId = storage.read('user_id');
+      final role = storage.read('role');
+
+      if (userId != null) {
+        debugPrint("Fetching profile image for user ID: $userId, role: $role");
+
+        Map<String, dynamic> result;
+
+        if (role?.toLowerCase() == 'tasker') {
+          final taskerService = TaskerService();
+          result =
+              await taskerService.getTaskerImages(int.parse(userId.toString()));
+        } else if (role?.toLowerCase() == 'client') {
+          final clientService = ClientServices();
+          result =
+              await clientService.getClientImages(int.parse(userId.toString()));
+        } else {
+          debugPrint('Unknown user role for fetching profile image: $role');
+          return;
+        }
+
+        debugPrint("Profile image fetch result: $result");
+
+        if (result.containsKey('images') && result['images'] is List) {
+          final List<dynamic> images = result['images'];
+          if (images.isNotEmpty) {
+            final firstImage = images.first;
+            if (firstImage is Map && firstImage['image_link'] != null) {
+              setState(() {
+                _userProfileImageUrl = firstImage['image_link'];
+              });
+              debugPrint('✅ Found user profile image: $_userProfileImageUrl');
+            }
+          } else {
+            debugPrint('No profile images found for user');
+          }
+        }
+      }
+    } catch (e) {
+      debugPrint('Error fetching user profile image: $e');
+    }
+  }
+
+  ImageProvider<Object>? _getProfileImageProvider() {
+    // Priority 1: Newly uploaded images (for editing)
+    if (taskerProfileImages.isNotEmpty) {
+      return FileImage(taskerProfileImages.first);
+    }
+    // Priority 2: Profile image from client_images/tasker_images table
+    else if (_userProfileImageUrl != null && _userProfileImageUrl!.isNotEmpty) {
+      return NetworkImage(_userProfileImageUrl!);
+    }
+    // Priority 3: Default user image from user table
+    else if (_user?.user.imageName != null &&
+        _user!.user.imageName!.isNotEmpty) {
+      return NetworkImage(_user!.user.imageName!);
+    }
+    // Fallback: Default asset image
+    else {
+      return const AssetImage('assets/images/default-profile.jpg');
+    }
+  }
+
   Future<void> updateUser() async {
     try {
       setState(() {
@@ -190,7 +260,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
       List<int> taskerImgIds =
           taskerImages.map((imgIds) => imgIds.id ?? 0).toList();
       debugPrint("Updated Image Ids: $taskerImgIds");
-      String updateResult = await _userController.updateUser(taskerProfileImages, tesdaDocuments, profileImage, taskerImgIds);
+      String updateResult = await _userController.updateUser(
+          taskerProfileImages, tesdaDocuments, profileImage, taskerImgIds);
       debugPrint("Result of Update Tasker Result: $updateResult");
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -418,501 +489,522 @@ class _ProfileScreenState extends State<ProfileScreen> {
       body: Padding(
         padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
         child: SingleChildScrollView(
-          child: Form(
-            key: updateTasker,
-            autovalidateMode: AutovalidateMode.onUserInteraction,
-            child: Column(
-              children: [
-                GestureDetector(
-                  onTap: willEdit ? pickProfilePicture : null,
-                  child: CircleAvatar(
-                    radius: 50,
-                    backgroundColor: Colors.grey[200],
-                    backgroundImage: profileImage != null
-                        ? FileImage(profileImage!)
-                        : (_user?.user.imageName != null
-                            ? NetworkImage(_user!.user.imageName!)
-                            : const AssetImage('assets/images/default-profile.jpg'))
-                                as ImageProvider<Object>?,
-                    child: willEdit
-                        ? Align(
-                            alignment: Alignment.bottomRight,
-                            child: CircleAvatar(
-                              radius: 18,
-                              backgroundColor: Colors.white,
-                              child: Icon(
-                                Icons.camera_alt,
-                                color: Color(0xFFE23670),
-                                size: 20,
-                              ),
-                            ),
-                          )
-                        : null,
-                  ),
-                ),
-                const SizedBox(height: 10),
-                Text(
-                  "${_user?.user.firstName} ${_user?.user.middleName?.isNotEmpty == true ? "${_user!.user.middleName?[0]}." : ""} ${_user?.user.lastName}",
-                  style: GoogleFonts.poppins(
-                    color: const Color(0xFFE23670),
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold
-                  )
-                ),
-                Text(_user?.user.email ?? '', style: GoogleFonts.poppins(fontSize: 14, color: Colors.grey)),
-                const SizedBox(height: 20),
-                if (role == "Tasker")
-                _buildSection(
-                  title: "Media",
-                  description: "Add up to 9 of your best pictures.",
-                  children: [
-                    SizedBox(height: 16),
-                    Center(
-                      child: GridView.count(
-                        shrinkWrap: true,
-                        physics: const NeverScrollableScrollPhysics(),
-                        crossAxisCount: 3,
-                        mainAxisSpacing: 10,
-                        crossAxisSpacing: 10,
-                        children: List.generate(9, (index) {
-                          Widget imageWidget;
-
-                          // 1. Prioritize displaying uploaded images
-                          if (index < taskerProfileImages.length) {
-                            imageWidget = ClipRRect(
-                              borderRadius: BorderRadius.circular(10),
-                              child: Image.file(
-                                taskerProfileImages[index],
-                                fit: BoxFit.cover,
-                              ),
-                            );
-                          }
-                          // 2. Fill remaining with tasker images if not empty
-                          else if (index - taskerProfileImages.length <
-                              taskerImages.length) {
-                            imageWidget = ClipRRect(
-                              borderRadius: BorderRadius.circular(10),
-                              child: Image.network(
-                                //taskerImages.[index - profileImages.length],
-                                taskerImages.isNotEmpty
-                                    ? taskerImages[
-                                            index - taskerProfileImages.length]
-                                        .image_url
-                                    : '',
-                                fit: BoxFit.cover,
-                              ),
-                            );
-                          } else {
-                            imageWidget = Center(
-                                child: SizedBox(
-                                    height: 200,
-                                    width: 100)); // Empty cell
-                          }
-
-                          return AspectRatio(
-                            aspectRatio: 3 / 4,
-                            child: GestureDetector(
-                              onTap: willEdit ? pickTaskerPicture : null,
-                              child: Container(
-                                decoration: BoxDecoration(
-                                  color: Colors.grey[200],
-                                  borderRadius: BorderRadius.circular(10),
+            child: Form(
+                key: updateTasker,
+                autovalidateMode: AutovalidateMode.onUserInteraction,
+                child: Column(children: [
+                  GestureDetector(
+                    onTap: willEdit ? pickProfilePicture : null,
+                    child: CircleAvatar(
+                      radius: 50,
+                      backgroundColor: Colors.grey[200],
+                      backgroundImage: _getProfileImageProvider(),
+                      child: willEdit
+                          ? Align(
+                              alignment: Alignment.bottomRight,
+                              child: CircleAvatar(
+                                radius: 18,
+                                backgroundColor: Colors.white,
+                                child: Icon(
+                                  Icons.camera_alt,
+                                  color: Color(0xFFE23670),
+                                  size: 20,
                                 ),
-                                child: Stack(
-                                  fit: StackFit.expand,
-                                  children: [
-                                    // Display dotted border always
-                                    DottedBorder(
-                                      borderType: BorderType.RRect,
-                                      radius: Radius.circular(10),
-                                      dashPattern: [10, 5],
-                                      color: Colors.grey[500]!,
-                                      strokeWidth: 1,
-                                      padding: EdgeInsets.zero,
-                                      child: Container(
-                                        alignment: Alignment.center,
-                                        child: imageWidget,
+                              ),
+                            )
+                          : null,
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  Text(
+                      "${_user?.user.firstName} ${_user?.user.middleName?.isNotEmpty == true ? "${_user!.user.middleName?[0]}." : ""} ${_user?.user.lastName}",
+                      style: GoogleFonts.poppins(
+                          color: const Color(0xFFE23670),
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold)),
+                  Text(_user?.user.email ?? '',
+                      style: GoogleFonts.poppins(
+                          fontSize: 14, color: Colors.grey)),
+                  const SizedBox(height: 20),
+                  if (role == "Tasker")
+                    _buildSection(
+                        title: "Media",
+                        description: "Add up to 9 of your best pictures.",
+                        children: [
+                          SizedBox(height: 16),
+                          Center(
+                            child: GridView.count(
+                              shrinkWrap: true,
+                              physics: const NeverScrollableScrollPhysics(),
+                              crossAxisCount: 3,
+                              mainAxisSpacing: 10,
+                              crossAxisSpacing: 10,
+                              children: List.generate(9, (index) {
+                                Widget imageWidget;
+
+                                // 1. Prioritize displaying uploaded images
+                                if (index < taskerProfileImages.length) {
+                                  imageWidget = ClipRRect(
+                                    borderRadius: BorderRadius.circular(10),
+                                    child: Image.file(
+                                      taskerProfileImages[index],
+                                      fit: BoxFit.cover,
+                                    ),
+                                  );
+                                }
+                                // 2. Fill remaining with tasker images if not empty
+                                else if (index - taskerProfileImages.length <
+                                    taskerImages.length) {
+                                  imageWidget = ClipRRect(
+                                    borderRadius: BorderRadius.circular(10),
+                                    child: Image.network(
+                                      //taskerImages.[index - profileImages.length],
+                                      taskerImages.isNotEmpty
+                                          ? taskerImages[index -
+                                                  taskerProfileImages.length]
+                                              .image_url
+                                          : '',
+                                      fit: BoxFit.cover,
+                                    ),
+                                  );
+                                } else {
+                                  imageWidget = Center(
+                                      child: SizedBox(
+                                          height: 200,
+                                          width: 100)); // Empty cell
+                                }
+                                // 1. Prioritize displaying uploaded images
+                                if (index < taskerProfileImages.length) {
+                                  imageWidget = ClipRRect(
+                                    borderRadius: BorderRadius.circular(10),
+                                    child: Image.file(
+                                      taskerProfileImages[index],
+                                      fit: BoxFit.cover,
+                                    ),
+                                  );
+                                }
+                                // 2. Fill remaining with tasker images if not empty
+                                else if (index - taskerProfileImages.length <
+                                    taskerImages.length) {
+                                  imageWidget = ClipRRect(
+                                    borderRadius: BorderRadius.circular(10),
+                                    child: Image.network(
+                                      //taskerImages.[index - profileImages.length],
+                                      taskerImages.isNotEmpty
+                                          ? taskerImages[index -
+                                                  taskerProfileImages.length]
+                                              .image_url
+                                          : '',
+                                      fit: BoxFit.cover,
+                                    ),
+                                  );
+                                } else {
+                                  imageWidget = Center(
+                                      child: SizedBox(
+                                          height: 200,
+                                          width: 100)); // Empty cell
+                                }
+
+                                return AspectRatio(
+                                  aspectRatio: 3 / 4,
+                                  child: GestureDetector(
+                                    onTap: willEdit ? pickTaskerPicture : null,
+                                    child: Container(
+                                      decoration: BoxDecoration(
+                                        color: Colors.grey[200],
+                                        borderRadius: BorderRadius.circular(10),
+                                      ),
+                                      child: Stack(
+                                        fit: StackFit.expand,
+                                        children: [
+                                          // Display dotted border always
+                                          DottedBorder(
+                                            borderType: BorderType.RRect,
+                                            radius: Radius.circular(10),
+                                            dashPattern: [10, 5],
+                                            color: Colors.grey[500]!,
+                                            strokeWidth: 1,
+                                            padding: EdgeInsets.zero,
+                                            child: Container(
+                                              alignment: Alignment.center,
+                                              child: imageWidget,
+                                            ),
+                                          ),
+
+                                          // Delete icon for profileImages
+                                          if (willEdit &&
+                                              index <
+                                                  taskerProfileImages.length)
+                                            Positioned(
+                                              top: 4,
+                                              right: 4,
+                                              child: IconButton(
+                                                padding: EdgeInsets.zero,
+                                                constraints: BoxConstraints(),
+                                                icon: Icon(Icons.remove_circle,
+                                                    color: Colors.red,
+                                                    size: 20),
+                                                onPressed: () {
+                                                  setState(() {
+                                                    taskerProfileImages
+                                                        .removeAt(index);
+                                                  });
+                                                },
+                                              ),
+                                            )
+
+                                          // Delete icon for taskerImages
+                                          else if (willEdit &&
+                                              index -
+                                                      taskerProfileImages
+                                                          .length <
+                                                  taskerImages
+                                                      .length) //&& taskerImages[index - profileImages.length].isNotEmpty)
+                                            Positioned(
+                                              top: 4,
+                                              right: 4,
+                                              child: IconButton(
+                                                padding: EdgeInsets.zero,
+                                                constraints: BoxConstraints(),
+                                                icon: Icon(Icons.remove_circle,
+                                                    color: Colors.red,
+                                                    size: 20),
+                                                onPressed: () {
+                                                  setState(() {
+                                                    taskerImages.removeAt(
+                                                        index -
+                                                            taskerProfileImages
+                                                                .length);
+                                                  });
+                                                },
+                                              ),
+                                            ),
+                                        ],
                                       ),
                                     ),
+                                  ),
+                                );
+                              }),
+                            ),
+                          ),
+                        ]),
+                  _buildSection(
+                      title: 'Your QTask Profile',
+                      description:
+                          'This is where you describe yourself to your potential clients/taskers.',
+                      children: [
+                        const SizedBox(height: 16),
+                        _buildTextField(
+                            controller: _userController.bioController,
+                            label: 'Bio',
+                            icon: null,
+                            hintText:
+                                "Make it as spicy as possible, but remain professional in your work.",
+                            maxLines: 5,
+                            validator: (value) {
+                              if (value != null && value.isNotEmpty) {
+                                if (value.length < 100) {
+                                  return 'Your Information must be at least 100 characters long.';
+                                }
+                              }
+                              return null;
+                            }),
+                        const SizedBox(height: 16),
+                        if (role == "Tasker") ...[
+                          _buildDropdownField(
+                              controller:
+                                  _userController.specializationController,
+                              label: 'Specialization',
+                              items: specialization,
+                              onChanged: (value) {
+                                setState(() {
+                                  _userController.skillsController.text =
+                                      ''; // Clear skills
+                                  _selectedSkills
+                                      .clear(); // Clear selected skills list
+                                });
+                              },
+                              hintText: 'Select your specialization',
+                              validator: (String? value) {
+                                if (value == null || value.isEmpty) {
+                                  return 'Please select a specialization';
+                                }
+                                return null;
+                              }),
+                          const SizedBox(height: 16),
+                          GestureDetector(
+                            onTap: willEdit &&
+                                    _userController.specializationController
+                                        .text.isNotEmpty
+                                ? () {
+                                    _showRelevantSkillsBottomSheet(context);
+                                  }
+                                : null,
+                            child: AbsorbPointer(
+                              child: _buildTextField(
+                                  controller: _userController.skillsController,
+                                  label: 'Relevant Skills',
+                                  icon: null,
+                                  hintText:
+                                      "Please Select all of your relevant skills.",
+                                  validator: (value) {
+                                    if (value != null && value.isNotEmpty) {
+                                      // Check if _user.tasker.skills is null or empty before validating _selectedSkills
+                                      if ((_user?.tasker?.skills == null ||
+                                              _user!.tasker!.skills!.isEmpty) &&
+                                          _selectedSkills.isEmpty) {
+                                        return 'Please select at least one skill';
+                                      }
+                                      return null;
+                                    }
+                                    return null;
+                                  }),
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          Row(children: [
+                            Flexible(
+                              flex: 2, // Occupy 3/4 of the row
+                              child: Padding(
+                                padding: const EdgeInsets.only(right: 8.0),
+                                // Add some spacing
+                                child: _buildTextField(
+                                    controller: _userController.wageController,
+                                    label: 'Your Wage',
+                                    icon: null,
+                                    keyboardType: TextInputType.number,
+                                    inputFormatters: [
+                                      CurrencyInputFormatter(),
+                                    ],
+                                    hintText: '₱ 0.00',
+                                    validator: (value) {
+                                      // Remove ₱ from value before parsing
+                                      if (value != null &&
+                                          value.isNotEmpty &&
+                                          value != '₱0.00') {
+                                        // Also check if the value is not just the default "₱0.00"
+                                        // before trying to parse.
+                                        if (double.tryParse(value.replaceAll(
+                                                RegExp(r'[^0-9.]'), '')) ==
+                                            0) {
+                                          return 'Please input your desired wage.';
+                                        }
+                                        return null;
+                                      }
+                                      return null;
+                                    }),
+                              ),
+                            ),
+                            Flexible(
+                                flex: 1, // Occupy 1/4 of the row
+                                child: _buildDropdownField(
+                                    controller:
+                                        _userController.payPeriodController,
+                                    label: "",
+                                    items: payPeriods,
+                                    hintText: "Per",
+                                    validator: (String? value) {
+                                      if (value == null) {
+                                        return 'Please select a pay period';
+                                      }
 
-                                    // Delete icon for profileImages
-                                    if (willEdit &&
-                                        index < taskerProfileImages.length)
-                                      Positioned(
-                                        top: 4,
-                                        right: 4,
-                                        child: IconButton(
-                                          padding: EdgeInsets.zero,
-                                          constraints: BoxConstraints(),
-                                          icon: Icon(Icons.remove_circle,
-                                              color: Colors.red,
-                                              size: 20),
-                                          onPressed: () {
-                                            setState(() {
-                                              taskerProfileImages
-                                                  .removeAt(index);
-                                            });
-                                          },
-                                        ),
-                                      )
-
-                                    // Delete icon for taskerImages
-                                    else if (willEdit &&
-                                        index - taskerProfileImages.length <
-                                            taskerImages
-                                                .length) //&& taskerImages[index - profileImages.length].isNotEmpty)
-                                      Positioned(
-                                        top: 4,
-                                        right: 4,
-                                        child: IconButton(
-                                          padding: EdgeInsets.zero,
-                                          constraints: BoxConstraints(),
-                                          icon: Icon(Icons.remove_circle,
-                                              color: Colors.red,
-                                              size: 20),
-                                          onPressed: () {
-                                            setState(() {
-                                              taskerImages.removeAt(
-                                                  index -
-                                                      taskerProfileImages
-                                                          .length);
-                                            });
-                                          },
-                                        ),
+                                      return null;
+                                    })),
+                          ]),
+                          SizedBox(height: 16),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  "Are you available?",
+                                  textAlign: TextAlign.start,
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w500,
+                                    color: Colors.grey[700],
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 16),
+                              Expanded(
+                                child: Text("Category",
+                                    textAlign: TextAlign.start,
+                                    style: GoogleFonts.poppins(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w500,
+                                      color: Colors.grey[700],
+                                    )),
+                              )
+                            ],
+                          ),
+                          SizedBox(height: 16),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: buildButtonWithIcon(
+                                    onPressed: _toggleAvailability,
+                                    label: _isAvailable
+                                        ? 'I am available'
+                                        : 'Not available',
+                                    color: _isAvailable
+                                        ? Color(0XFF4DBF66)
+                                        : Color(0XFFD43D4D),
+                                    icon: _isAvailable
+                                        ? FontAwesomeIcons.check
+                                        : FontAwesomeIcons.xmark),
+                              ),
+                              const SizedBox(width: 16),
+                              Expanded(
+                                  child: buildButtonWithIcon(
+                                      onPressed: _toggleGroupTasker,
+                                      label: isGroup ? 'Agency' : 'Individual',
+                                      color: isGroup
+                                          ? Color(0XFF3C28CC)
+                                          : Color(0XFFE23670),
+                                      icon: isGroup
+                                          ? FontAwesomeIcons.building
+                                          : FontAwesomeIcons.userGear))
+                            ],
+                          ),
+                        ]
+                      ]),
+                  const SizedBox(height: 8),
+                  if (role == "Tasker")
+                    _buildSection(
+                        title:
+                            "Your TESDA Documents and Other Credentials (Optional)",
+                        description:
+                            "To further boost your credibility, you can upload your TESDA certifications (or any other certifications) to boost your credibility.",
+                        children: [
+                          const SizedBox(height: 16),
+                          GestureDetector(
+                            onTap: willEdit ? pickTESDADocuments : null,
+                            child: DottedBorder(
+                              borderType: BorderType.RRect,
+                              radius: const Radius.circular(12),
+                              padding: const EdgeInsets.all(6),
+                              dashPattern: const [8, 4],
+                              strokeWidth: 2,
+                              color: Colors.grey.shade400,
+                              child: Container(
+                                width: double.infinity,
+                                padding: const EdgeInsets.symmetric(
+                                    vertical: 20, horizontal: 16),
+                                decoration: BoxDecoration(
+                                  color: Colors.grey.shade100,
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(
+                                      FontAwesomeIcons.cloudArrowUp,
+                                      size: 40,
+                                      color: Color(0xFFE23670),
+                                    ),
+                                    const SizedBox(height: 12),
+                                    Text(
+                                      "Tap to upload documents",
+                                      style: GoogleFonts.poppins(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w500,
+                                        color: Colors.grey.shade700,
                                       ),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      "Supports: PDF, JPG, PNG",
+                                      style: GoogleFonts.poppins(
+                                        fontSize: 12,
+                                        color: Colors.grey.shade500,
+                                      ),
+                                    ),
                                   ],
                                 ),
                               ),
                             ),
-                          );
-                        }),
-                      ),
-                    ),
-                  ]
-                ),
-                _buildSection(
-                  title: 'Your QTask Profile',
-                  description:
-                      'This is where you describe yourself to your potential clients/taskers.',
-                  children: [
-                    const SizedBox(height: 16),
-                    _buildTextField(
-                        controller: _userController.bioController,
-                        label: 'Bio',
-                        icon: null,
-                        hintText:
-                            "Make it as spicy as possible, but remain professional in your work.",
-                        maxLines: 5,
-                        validator: (value) {
-                          if (value != null && value.isNotEmpty) {
-                            if (value.length < 100) {
-                              return 'Your Information must be at least 100 characters long.';
-                            }
-                          }
-                          return null;
-                        }),
-                    const SizedBox(height: 16),
-                    if (role == "Tasker") ...[
-                      _buildDropdownField(
-                          controller:
-                              _userController.specializationController,
-                          label: 'Specialization',
-                          items: specialization,
-                          onChanged: (value) {
-                            setState(() {
-                              _userController.skillsController.text =
-                                  ''; // Clear skills
-                              _selectedSkills
-                                  .clear(); // Clear selected skills list
-                            });
-                          },
-                          hintText: 'Select your specialization',
-                          validator: (String? value) {
-                            if (value == null || value.isEmpty) {
-                              return 'Please select a specialization';
-                            }
-                            return null;
-                          }),
-                      const SizedBox(height: 16),
-                      GestureDetector(
-                        onTap: willEdit &&
-                                _userController.specializationController
-                                    .text.isNotEmpty
-                            ? () {
-                                _showRelevantSkillsBottomSheet(context);
-                              }
-                            : null,
-                        child: AbsorbPointer(
-                          child: _buildTextField(
-                              controller: _userController.skillsController,
-                              label: 'Relevant Skills',
-                              icon: null,
-                              hintText:
-                                  "Please Select all of your relevant skills.",
-                              validator: (value) {
-                                if (value != null && value.isNotEmpty) {
-                                  // Check if _user.tasker.skills is null or empty before validating _selectedSkills
-                                  if ((_user?.tasker?.skills == null ||
-                                          _user!.tasker!.skills!.isEmpty) &&
-                                      _selectedSkills.isEmpty) {
-                                    return 'Please select at least one skill';
-                                  }
-                                  return null;
-                                }
-                                return null;
-                              }),
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      Row(children: [
-                        Flexible(
-                          flex: 2, // Occupy 3/4 of the row
-                          child: Padding(
-                            padding: const EdgeInsets.only(right: 8.0),
-                            // Add some spacing
-                            child: _buildTextField(
-                                controller: _userController.wageController,
-                                label: 'Your Wage',
-                                icon: null,
-                                keyboardType: TextInputType.number,
-                                inputFormatters: [
-                                  CurrencyInputFormatter(),
-                                ],
-                                hintText: '₱ 0.00',
-                                validator: (value) {
-                                  // Remove ₱ from value before parsing
-                                  if (value != null &&
-                                      value.isNotEmpty &&
-                                      value != '₱0.00') {
-                                    // Also check if the value is not just the default "₱0.00"
-                                    // before trying to parse.
-                                    if (double.tryParse(value.replaceAll(
-                                            RegExp(r'[^0-9.]'), '')) ==
-                                        0) {
-                                      return 'Please input your desired wage.';
-                                    }
-                                    return null;
-                                  }
-                                  return null;
-                                }),
                           ),
-                        ),
-                        Flexible(
-                            flex: 1, // Occupy 1/4 of the row
-                            child: _buildDropdownField(
-                                controller:
-                                    _userController.payPeriodController,
-                                label: "",
-                                items: payPeriods,
-                                hintText: "Per",
-                                validator: (String? value) {
-                                  if (value == null) {
-                                    return 'Please select a pay period';
-                                  }
-
-                                  return null;
-                                })),
-                      ]),
-                      SizedBox(height: 16),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: Text(
-                              "Are you available?",
-                              textAlign: TextAlign.start,
-                              style: GoogleFonts.poppins(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w500,
-                                color: Colors.grey[700],
-                              ),
+                          const SizedBox(height: 16),
+                          if (tesdaDocuments.isNotEmpty)
+                            ListView.builder(
+                              shrinkWrap: true,
+                              physics: const NeverScrollableScrollPhysics(),
+                              itemCount: tesdaDocuments.length,
+                              itemBuilder: (context, index) {
+                                final file = tesdaDocuments[index];
+                                // Assuming buildFilePreview can handle File objects directly now
+                                // or you have a way to get the file name.
+                                // If file is a String (URL), that's handled by buildFilePreview.
+                                // If file is a File object, we might need to adjust buildFilePreview
+                                // or extract the path/name here.
+                                return Padding(
+                                  padding: const EdgeInsets.only(bottom: 8.0),
+                                  child: buildFilePreview(file, index),
+                                );
+                              },
                             ),
-                          ),
-                          const SizedBox(width: 16),
-                          Expanded(
-                            child: Text("Category",
-                                textAlign: TextAlign.start,
-                                style: GoogleFonts.poppins(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w500,
-                                  color: Colors.grey[700],
-                                )),
-                          )
-                        ],
-                      ),
-                      SizedBox(height: 16),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: buildButtonWithIcon(
-                                onPressed: _toggleAvailability,
-                                label: _isAvailable
-                                    ? 'I am available'
-                                    : 'Not available',
-                                color: _isAvailable
-                                    ? Color(0XFF4DBF66)
-                                    : Color(0XFFD43D4D),
-                                icon: _isAvailable
-                                    ? FontAwesomeIcons.check
-                                    : FontAwesomeIcons.xmark),
-                          ),
-                          const SizedBox(width: 16),
-                          Expanded(
-                              child: buildButtonWithIcon(
-                                  onPressed: _toggleGroupTasker,
-                                  label: isGroup ? 'Agency' : 'Individual',
-                                  color: isGroup
-                                      ? Color(0XFF3C28CC)
-                                      : Color(0XFFE23670),
-                                  icon: isGroup
-                                      ? FontAwesomeIcons.building
-                                      : FontAwesomeIcons.userGear))
-                        ],
-                      ),
-                    ]
-                  ]
-                ),
-                const SizedBox(height: 8),
-                if (role == "Tasker")
+                        ]),
+                  const SizedBox(height: 8),
                   _buildSection(
-                    title:
-                        "Your TESDA Documents and Other Credentials (Optional)",
-                    description:
-                        "To further boost your credibility, you can upload your TESDA certifications (or any other certifications) to boost your credibility.",
-                    children: [
-                      const SizedBox(height: 16),
-                      GestureDetector(
-                        onTap: willEdit ? pickTESDADocuments : null,
-                        child: DottedBorder(
-                          borderType: BorderType.RRect,
-                          radius: const Radius.circular(12),
-                          padding: const EdgeInsets.all(6),
-                          dashPattern: const [8, 4],
-                          strokeWidth: 2,
-                          color: Colors.grey.shade400,
-                          child: Container(
-                            width: double.infinity,
-                            padding: const EdgeInsets.symmetric(
-                                vertical: 20, horizontal: 16),
-                            decoration: BoxDecoration(
-                              color: Colors.grey.shade100,
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(
-                                  FontAwesomeIcons.cloudArrowUp,
-                                  size: 40,
-                                  color: Color(0xFFE23670),
-                                ),
-                                const SizedBox(height: 12),
-                                Text(
-                                  "Tap to upload documents",
-                                  style: GoogleFonts.poppins(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w500,
-                                    color: Colors.grey.shade700,
-                                  ),
-                                ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  "Supports: PDF, JPG, PNG",
-                                  style: GoogleFonts.poppins(
-                                    fontSize: 12,
-                                    color: Colors.grey.shade500,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      if (tesdaDocuments.isNotEmpty)
-                        ListView.builder(
-                          shrinkWrap: true,
-                          physics: const NeverScrollableScrollPhysics(),
-                          itemCount: tesdaDocuments.length,
-                          itemBuilder: (context, index) {
-                            final file = tesdaDocuments[index];
-                            // Assuming buildFilePreview can handle File objects directly now
-                            // or you have a way to get the file name.
-                            // If file is a String (URL), that's handled by buildFilePreview.
-                            // If file is a File object, we might need to adjust buildFilePreview
-                            // or extract the path/name here.
-                            return Padding(
-                              padding: const EdgeInsets.only(bottom: 8.0),
-                              child: buildFilePreview(file, index),
-                            );
+                      title: 'Your Social Media Profiles (Optional)',
+                      description:
+                          'You can add your social media profiles here to help your potential loyal customers find you.',
+                      children: [
+                        // Facebook
+                        _buildTextField(
+                          controller: _userController.fbLinkController,
+                          label: 'Facebook Profile URL',
+                          icon: FontAwesomeIcons.facebook,
+                          keyboardType: TextInputType.url,
+                          hintText: 'https://facebook.com/yourusername',
+                          validator: (value) {
+                            if (value != null && value.isNotEmpty) {
+                              if (!value.contains('facebook.com')) {
+                                return 'Please enter a valid Facebook URL';
+                              }
+                            }
+                            return null; // Optional field
                           },
                         ),
-                    ]
-                  ),
-                const SizedBox(height: 8),
-                _buildSection(
-                  title: 'Your Social Media Profiles (Optional)',
-                  description:
-                      'You can add your social media profiles here to help your potential loyal customers find you.',
-                  children: [
-                    // Facebook
-                    _buildTextField(
-                      controller: _userController.fbLinkController,
-                      label: 'Facebook Profile URL',
-                      icon: FontAwesomeIcons.facebook,
-                      keyboardType: TextInputType.url,
-                      hintText: 'https://facebook.com/yourusername',
-                      validator: (value) {
-                        if (value != null && value.isNotEmpty) {
-                          if (!value.contains('facebook.com')) {
-                            return 'Please enter a valid Facebook URL';
-                          }
-                        }
-                        return null; // Optional field
-                      },
-                    ),
-                    const SizedBox(height: 16),
+                        const SizedBox(height: 16),
 
-                    // Instagram
-                    _buildTextField(
-                      controller: _userController.instaLinkController,
-                      label: 'Instagram Profile URL',
-                      icon: FontAwesomeIcons.instagram,
-                      keyboardType: TextInputType.url,
-                      hintText: 'https://instagram.com/yourusername',
-                      validator: (value) {
-                        if (value != null && value.isNotEmpty) {
-                          if (!value.contains('instagram.com')) {
-                            return 'Please enter a valid Instagram URL';
-                          }
-                        }
-                        return null; // Optional field
-                      },
-                    ),
-                    const SizedBox(height: 16),
-                    // Twitter
-                    _buildTextField(
-                      controller: _userController.telegramLinkController,
-                      label: 'Twitter Profile URL',
-                      icon: FontAwesomeIcons.twitter,
-                      keyboardType: TextInputType.url,
-                      hintText: 'https://twitter.com/yourusername',
-                      validator: (value) {
-                        if (value != null && value.isNotEmpty) {
-                          if (!value.contains('twitter.com') &&
-                              !value.contains('x.com')) {
-                            return 'Please enter a valid Twitter/X URL';
-                          }
-                        }
-                        return null; // Optional field
-                      },
-                    ),
-                    const SizedBox(height: 24),
-                  ]
-                )
-              ]
-            )
-          )
-        ),
+                        // Instagram
+                        _buildTextField(
+                          controller: _userController.instaLinkController,
+                          label: 'Instagram Profile URL',
+                          icon: FontAwesomeIcons.instagram,
+                          keyboardType: TextInputType.url,
+                          hintText: 'https://instagram.com/yourusername',
+                          validator: (value) {
+                            if (value != null && value.isNotEmpty) {
+                              if (!value.contains('instagram.com')) {
+                                return 'Please enter a valid Instagram URL';
+                              }
+                            }
+                            return null; // Optional field
+                          },
+                        ),
+                        const SizedBox(height: 16),
+                        // Twitter
+                        _buildTextField(
+                          controller: _userController.telegramLinkController,
+                          label: 'Twitter Profile URL',
+                          icon: FontAwesomeIcons.twitter,
+                          keyboardType: TextInputType.url,
+                          hintText: 'https://twitter.com/yourusername',
+                          validator: (value) {
+                            if (value != null && value.isNotEmpty) {
+                              if (!value.contains('twitter.com') &&
+                                  !value.contains('x.com')) {
+                                return 'Please enter a valid Twitter/X URL';
+                              }
+                            }
+                            return null; // Optional field
+                          },
+                        ),
+                        const SizedBox(height: 24),
+                      ])
+                ]))),
       ),
     );
   }
