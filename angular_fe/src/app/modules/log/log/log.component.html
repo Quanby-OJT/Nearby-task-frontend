@@ -22,8 +22,8 @@
     </button>
   </div>
 </div>
-<div class="py-2"></div>
 
+<div class="py-2"></div>
 <!-- Main container with search, filter, table, and pagination -->
 <div class="border-muted/20 bg-background flex min-w-full mx-auto flex-col rounded-xl border p-4">
   <!-- Search and Filter Section -->
@@ -116,7 +116,7 @@
   </div>
 
   <!-- Pagination Section -->
-  <div *ngIf="isLoading" class="flex justify-between items-center bg-white w-100%">
+  <div *ngIf="!isLoading" class="flex justify-between items-center bg-white w-100%">
     <!-- Logs per page selector -->
     <div class="text-muted-foreground flex items-center justify-between py-3 px-5 text-xs">
       <div class="flex items-center gap-2">
