@@ -351,8 +351,7 @@ class _TaskOngoingState extends State<TaskOngoing> {
       ),
       builder: (childContext) => DisputeBottomSheet(
           taskInformation: _taskInformation!,
-          requestInformation: _requestInformation!
-      ),
+          requestInformation: _requestInformation!),
     );
   }
 
