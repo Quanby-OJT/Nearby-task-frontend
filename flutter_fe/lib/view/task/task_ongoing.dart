@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_fe/view/components/modals/dispute_bottom_sheet.dart';
 import 'package:flutter_fe/view/task/task_disputed.dart';
 import 'package:flutter_fe/view/task/task_review.dart';
 import 'package:flutter_fe/view/task_user/user_feedback.dart';
@@ -186,7 +187,10 @@ class _TaskOngoingState extends State<TaskOngoing> {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
-      builder: (childContext) => _buildDisputeBottomSheet(),
+      builder: (childContext) => DisputeBottomSheet(
+          taskInformation: _taskInformation!,
+          requestInformation: _requestInformation!
+      ),
     );
   }
 
