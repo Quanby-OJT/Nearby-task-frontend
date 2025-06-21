@@ -236,7 +236,7 @@ class _SignUpClientAccState extends State<SignUpClientAcc> {
                     const EdgeInsets.symmetric(vertical: 10, horizontal: 20),
                 child: Text(
                   textAlign: TextAlign.center,
-                  "With ONE SWIPE\n You can Find a New Tasker in a MATTER OF SECONDS.	",
+                  "With ONE SWIPE\n You can Find a New Tasker in a MATTER OF SECONDS.",
                   style: GoogleFonts.poppins(
                     color: Colors.black,
                     fontSize: 12,
@@ -336,57 +336,57 @@ class _SignUpClientAccState extends State<SignUpClientAcc> {
                         ),
                       ),
                     ),
-                    Padding(
-                      padding: const EdgeInsets.only(left: 12.0, top: 4.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Password must contain:',
-                            style: GoogleFonts.poppins(
-                              fontSize: 11,
-                              fontWeight: FontWeight.w500,
-                              color: Colors.black54,
-                            ),
-                          ),
-                          Text(
-                            '• At least 8 characters',
-                            style: GoogleFonts.poppins(
-                              fontSize: 10,
-                              color: Colors.black54,
-                            ),
-                          ),
-                          Text(
-                            '• At least one uppercase letter',
-                            style: GoogleFonts.poppins(
-                              fontSize: 10,
-                              color: Colors.black54,
-                            ),
-                          ),
-                          Text(
-                            '• At least one lowercase letter',
-                            style: GoogleFonts.poppins(
-                              fontSize: 10,
-                              color: Colors.black54,
-                            ),
-                          ),
-                          Text(
-                            '• At least one number',
-                            style: GoogleFonts.poppins(
-                              fontSize: 10,
-                              color: Colors.black54,
-                            ),
-                          ),
-                          Text(
-                            '• At least one special character (!@#\$%^&*(),.?":{}|<>)',
-                            style: GoogleFonts.poppins(
-                              fontSize: 10,
-                              color: Colors.black54,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
+                    // Padding(
+                    //   padding: const EdgeInsets.only(left: 12.0, top: 4.0),
+                    //   child: Column(
+                    //     crossAxisAlignment: CrossAxisAlignment.start,
+                    //     children: [
+                    //       Text(
+                    //         'Password must contain:',
+                    //         style: GoogleFonts.poppins(
+                    //           fontSize: 11,
+                    //           fontWeight: FontWeight.w500,
+                    //           color: Colors.black54,
+                    //         ),
+                    //       ),
+                    //       Text(
+                    //         '• At least 8 characters',
+                    //         style: GoogleFonts.poppins(
+                    //           fontSize: 10,
+                    //           color: Colors.black54,
+                    //         ),
+                    //       ),
+                    //       Text(
+                    //         '• At least one uppercase letter',
+                    //         style: GoogleFonts.poppins(
+                    //           fontSize: 10,
+                    //           color: Colors.black54,
+                    //         ),
+                    //       ),
+                    //       Text(
+                    //         '• At least one lowercase letter',
+                    //         style: GoogleFonts.poppins(
+                    //           fontSize: 10,
+                    //           color: Colors.black54,
+                    //         ),
+                    //       ),
+                    //       Text(
+                    //         '• At least one number',
+                    //         style: GoogleFonts.poppins(
+                    //           fontSize: 10,
+                    //           color: Colors.black54,
+                    //         ),
+                    //       ),
+                    //       Text(
+                    //         '• At least one special character (!@#\$%^&*(),.?":{}|<>)',
+                    //         style: GoogleFonts.poppins(
+                    //           fontSize: 10,
+                    //           color: Colors.black54,
+                    //         ),
+                    //       ),
+                    //     ],
+                    //   ),
+                    // ),
                     SizedBox(height: 10),
                     TextFormField(
                       cursorColor: Color(0xFFB71A4A),
@@ -418,107 +418,107 @@ class _SignUpClientAccState extends State<SignUpClientAcc> {
                         ),
                       ),
                     ),
-                    SizedBox(height: 20),
-                    Container(
-                      padding: EdgeInsets.all(10),
-                      decoration: BoxDecoration(
-                        border: Border.all(color: Color(0xFFB71A4A)),
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Signature',
-                            style: GoogleFonts.poppins(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w500,
-                              color: Color(0xFFB71A4A),
-                            ),
-                          ),
-                          SizedBox(height: 10),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              TextButton.icon(
-                                onPressed: _pickSignatureImage,
-                                icon: Icon(Icons.upload_file,
-                                    color: Color(0xFFB71A4A)),
-                                label: Text(
-                                  'Upload Signature',
-                                  style: GoogleFonts.poppins(
-                                    color: Color(0xFFB71A4A),
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                ),
-                              ),
-                              if (_signatureImage != null)
-                                TextButton.icon(
-                                  onPressed: () {
-                                    setState(() {
-                                      _signatureImage = null;
-                                    });
-                                  },
-                                  icon: Icon(Icons.delete, color: Colors.red),
-                                  label: Text(
-                                    'Remove',
-                                    style: GoogleFonts.poppins(
-                                      color: Colors.red,
-                                      fontWeight: FontWeight.w500,
-                                    ),
-                                  ),
-                                ),
-                            ],
-                          ),
-                          SizedBox(height: 10),
-                          Container(
-                            height: 200,
-                            decoration: BoxDecoration(
-                              border: Border.all(color: Colors.grey),
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            child: ClipRRect(
-                              borderRadius: BorderRadius.circular(10),
-                              child: _signatureImage != null
-                                  ? Container(
-                                      width: double.infinity,
-                                      height: double.infinity,
-                                      decoration: const BoxDecoration(
-                                        color: Colors.white,
-                                      ),
-                                      child: Image.file(
-                                        _signatureImage!,
-                                        fit: BoxFit.contain,
-                                      ),
-                                    )
-                                  : Signature(
-                                      controller: _signatureController,
-                                      backgroundColor: Colors.white,
-                                    ),
-                            ),
-                          ),
-                          SizedBox(height: 10),
-                          if (_signatureImage == null)
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.end,
-                              children: [
-                                TextButton(
-                                  onPressed: () {
-                                    _signatureController.clear();
-                                  },
-                                  child: Text(
-                                    'Clear',
-                                    style: GoogleFonts.poppins(
-                                      color: Color(0xFFB71A4A),
-                                      fontWeight: FontWeight.w500,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                        ],
-                      ),
-                    ),
+                    // SizedBox(height: 20),
+                    // Container(
+                    //   padding: EdgeInsets.all(10),
+                    //   decoration: BoxDecoration(
+                    //     border: Border.all(color: Color(0xFFB71A4A)),
+                    //     borderRadius: BorderRadius.circular(10),
+                    //   ),
+                    //   child: Column(
+                    //     crossAxisAlignment: CrossAxisAlignment.start,
+                    //     children: [
+                    //       Text(
+                    //         'Signature',
+                    //         style: GoogleFonts.poppins(
+                    //           fontSize: 14,
+                    //           fontWeight: FontWeight.w500,
+                    //           color: Color(0xFFB71A4A),
+                    //         ),
+                    //       ),
+                    //       SizedBox(height: 10),
+                    //       Row(
+                    //         mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    //         children: [
+                    //           TextButton.icon(
+                    //             onPressed: _pickSignatureImage,
+                    //             icon: Icon(Icons.upload_file,
+                    //                 color: Color(0xFFB71A4A)),
+                    //             label: Text(
+                    //               'Upload Signature',
+                    //               style: GoogleFonts.poppins(
+                    //                 color: Color(0xFFB71A4A),
+                    //                 fontWeight: FontWeight.w500,
+                    //               ),
+                    //             ),
+                    //           ),
+                    //           if (_signatureImage != null)
+                    //             TextButton.icon(
+                    //               onPressed: () {
+                    //                 setState(() {
+                    //                   _signatureImage = null;
+                    //                 });
+                    //               },
+                    //               icon: Icon(Icons.delete, color: Colors.red),
+                    //               label: Text(
+                    //                 'Remove',
+                    //                 style: GoogleFonts.poppins(
+                    //                   color: Colors.red,
+                    //                   fontWeight: FontWeight.w500,
+                    //                 ),
+                    //               ),
+                    //             ),
+                    //         ],
+                    //       ),
+                    //       SizedBox(height: 10),
+                    //       Container(
+                    //         height: 200,
+                    //         decoration: BoxDecoration(
+                    //           border: Border.all(color: Colors.grey),
+                    //           borderRadius: BorderRadius.circular(10),
+                    //         ),
+                    //         child: ClipRRect(
+                    //           borderRadius: BorderRadius.circular(10),
+                    //           child: _signatureImage != null
+                    //               ? Container(
+                    //                   width: double.infinity,
+                    //                   height: double.infinity,
+                    //                   decoration: const BoxDecoration(
+                    //                     color: Colors.white,
+                    //                   ),
+                    //                   child: Image.file(
+                    //                     _signatureImage!,
+                    //                     fit: BoxFit.contain,
+                    //                   ),
+                    //                 )
+                    //               : Signature(
+                    //                   controller: _signatureController,
+                    //                   backgroundColor: Colors.white,
+                    //                 ),
+                    //         ),
+                    //       ),
+                    //       SizedBox(height: 10),
+                    //       if (_signatureImage == null)
+                    //         Row(
+                    //           mainAxisAlignment: MainAxisAlignment.end,
+                    //           children: [
+                    //             TextButton(
+                    //               onPressed: () {
+                    //                 _signatureController.clear();
+                    //               },
+                    //               child: Text(
+                    //                 'Clear',
+                    //                 style: GoogleFonts.poppins(
+                    //                   color: Color(0xFFB71A4A),
+                    //                   fontWeight: FontWeight.w500,
+                    //                 ),
+                    //               ),
+                    //             ),
+                    //           ],
+                    //         ),
+                    //     ],
+                    //   ),
+                    // ),
                     SizedBox(height: 20),
                     //Privacy Policy and Terms of Service
                     Row(mainAxisAlignment: MainAxisAlignment.start, children: [

@@ -906,34 +906,38 @@ class _ClientHomePageState extends State<ClientHomePage>
                         ),
                       ),
                       onTap: () {
-                        Navigator.push(context, MaterialPageRoute(builder: (context) => const LegalTermsAndConditionsScreen()));
-                        overlayEntry.remove();
-                      },
-                    ),
-                    ListTile(
-                      leading: Icon(
-                        Icons.settings,
-                        color: const Color(0xFFB71A4A),
-                      ),
-                      title: Text(
-                        'Configuration',
-                        style: GoogleFonts.poppins(
-                          color: Colors.black,
-                          fontSize: 14,
-                          fontWeight: FontWeight.w300,
-                        ),
-                      ),
-                      onTap: () {
                         Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) => ConfigurationList()),
-                        ).then((value) => setState(() {
-                              _fetchTaskers();
-                            }));
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) =>
+                                    const LegalTermsAndConditionsScreen()));
                         overlayEntry.remove();
                       },
                     ),
+                    // ListTile(
+                    //   leading: Icon(
+                    //     Icons.settings,
+                    //     color: const Color(0xFFB71A4A),
+                    //   ),
+                    //   title: Text(
+                    //     'Configuration',
+                    //     style: GoogleFonts.poppins(
+                    //       color: Colors.black,
+                    //       fontSize: 14,
+                    //       fontWeight: FontWeight.w300,
+                    //     ),
+                    //   ),
+                    //   onTap: () {
+                    //     Navigator.push(
+                    //       context,
+                    //       MaterialPageRoute(
+                    //           builder: (context) => ConfigurationList()),
+                    //     ).then((value) => setState(() {
+                    //           _fetchTaskers();
+                    //         }));
+                    //     overlayEntry.remove();
+                    //   },
+                    // ),
                     ListTile(
                       leading: Icon(
                         Icons.settings,

@@ -139,30 +139,30 @@ class _IndividualChatScreenState extends State<IndividualChatScreen> {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    buildListTile(
-                      Icons.location_on,
-                      "View Location",
-                      () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) => UserSharedLocation(
-                                    taskTakenId:
-                                        widget.taskAssignment.taskTakenId,
-                                    user: widget.user ??
-                                        UserModel(
-                                          firstName: '',
-                                          middleName: '',
-                                          lastName: '',
-                                          email: '',
-                                          role: '',
-                                          accStatus: '',
-                                        ),
-                                  )),
-                        );
-                        overlayEntry.remove();
-                      },
-                    ),
+                    // buildListTile(
+                    //   Icons.location_on,
+                    //   "View Location",
+                    //   () {
+                    //     Navigator.push(
+                    //       context,
+                    //       MaterialPageRoute(
+                    //           builder: (context) => UserSharedLocation(
+                    //                 taskTakenId:
+                    //                     widget.taskAssignment.taskTakenId,
+                    //                 user: widget.user ??
+                    //                     UserModel(
+                    //                       firstName: '',
+                    //                       middleName: '',
+                    //                       lastName: '',
+                    //                       email: '',
+                    //                       role: '',
+                    //                       accStatus: '',
+                    //                     ),
+                    //               )),
+                    //     );
+                    //     overlayEntry.remove();
+                    //   },
+                    // ),
                     buildListTile(
                       Icons.info_outline,
                       "Task Details",

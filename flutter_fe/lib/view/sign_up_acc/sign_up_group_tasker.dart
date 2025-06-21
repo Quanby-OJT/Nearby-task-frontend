@@ -124,7 +124,7 @@ class _SignUpGroupTaskerAccState extends State<SignUpGroupTaskerAcc> {
             ),
             SizedBox(height: 20),
             Text(
-              'Create a New Tasker Account',
+              'Create a New Tasker sample Account',
               style: TextStyle(
                 color: const Color(0xFF0272B1),
                 fontSize: 30,

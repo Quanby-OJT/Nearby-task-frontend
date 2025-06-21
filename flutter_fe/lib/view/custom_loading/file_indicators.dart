@@ -8,7 +8,7 @@ class UploadFileIndicator extends StatelessWidget {
   Widget build(BuildContext context) {
     Color color = const Color(0XFFE23670);
     return Column(
-      mainAxisSize: MainAxisSize.min, // <-- Important to avoid overflow
+      mainAxisSize: MainAxisSize.min,
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         Stack(
@@ -31,7 +31,7 @@ class UploadFileIndicator extends StatelessWidget {
         ),
         const SizedBox(height: 10),
         Text(
-          'Uploading Task to Cloud...',
+          'Uploading Task...',
           textAlign: TextAlign.center,
           style: GoogleFonts.poppins(
             fontSize: 16,
@@ -44,7 +44,6 @@ class UploadFileIndicator extends StatelessWidget {
   }
 }
 
-
 class DownloadFileIndicator extends StatelessWidget {
   const DownloadFileIndicator({super.key});
 
@@ -52,40 +51,28 @@ class DownloadFileIndicator extends StatelessWidget {
   Widget build(BuildContext context) {
     Color color = Color(0XFFE23670);
     return SizedBox(
-      width: 100,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Stack(
-            alignment: Alignment.center,
+        width: 100,
+        child: Column(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              SizedBox(
-                height: 120,
-                width: 120,
-                child: CircularProgressIndicator(
-                  strokeWidth: 10,
-                  color: color,
-                )
+              Stack(
+                alignment: Alignment.center,
+                children: [
+                  SizedBox(
+                      height: 120,
+                      width: 120,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 10,
+                        color: color,
+                      )),
+                  Icon(Icons.cloud_download_outlined, size: 70, color: color)
+                ],
               ),
-              Icon(
-                Icons.cloud_download_outlined,
-                size: 70,
-                color: color
-              )
-            ],
-          ),
-          SizedBox(height: 10),
-          Text(
-            'Downloading Task From Cloud...',
-            style: GoogleFonts.poppins(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              color: color
-            )
-          ),
-        ]
-      )
-    );
+              SizedBox(height: 10),
+              Text('Downloading Task...',
+                  style: GoogleFonts.poppins(
+                      fontSize: 16, fontWeight: FontWeight.bold, color: color)),
+            ]));
   }
 }

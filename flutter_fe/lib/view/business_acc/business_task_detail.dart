@@ -299,15 +299,15 @@ class _BusinessTaskDetailState extends State<BusinessTaskDetail> {
                               "Remarks", taskToDisplay.remarks ?? "N/A"),
                           const SizedBox(height: 20),
 
-                          // Milestone Management Section
-                          MilestoneManagementWidget(
-                            task: taskToDisplay,
-                            onMilestonesChanged: () {
-                              // Optionally refresh task data or update UI
-                              setState(() {});
-                            },
-                          ),
-                          const SizedBox(height: 20),
+                          // // Milestone Management Section
+                          // MilestoneManagementWidget(
+                          //   task: taskToDisplay,
+                          //   onMilestonesChanged: () {
+                          //     // Optionally refresh task data or update UI
+                          //     setState(() {});
+                          //   },
+                          // ),
+                          // const SizedBox(height: 20),
                           Container(
                               width: double.infinity,
                               padding: const EdgeInsets.only(bottom: 12),

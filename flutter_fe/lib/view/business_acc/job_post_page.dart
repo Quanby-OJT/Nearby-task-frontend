@@ -1367,9 +1367,9 @@ class _JobPostPageState extends State<JobPostPage>
       child: InkWell(
         borderRadius: BorderRadius.circular(12),
         onTap: () => _navigateToTaskStatusPage(task),
-        onLongPress: () {
-          _showSelectorModal(context, task);
-        },
+        // onLongPress: () {
+        //   _showSelectorModal(context, task);
+        // },
         child: Padding(
           padding: const EdgeInsets.all(16),
           child: Column(
@@ -1865,19 +1865,19 @@ class _JobPostPageState extends State<JobPostPage>
             color: const Color(0xFFB71A4A),
           ),
         ),
-        actions: [
-          IconButton(
-            key: _moreVertKey,
-            icon: Icon(
-              Icons.more_vert,
-              color: Color(0xFFB71A4A),
-            ),
-            onPressed: () {
-              _showAnimatedMenu(context);
-            },
-          ),
-        ],
-        centerTitle: false,
+        // actions: [
+        //   IconButton(
+        //     key: _moreVertKey,
+        //     icon: Icon(
+        //       Icons.more_vert,
+        //       color: Color(0xFFB71A4A),
+        //     ),
+        //     onPressed: () {
+        //       _showAnimatedMenu(context);
+        //     },
+        //   ),
+        // ],
+        centerTitle: true,
         backgroundColor: Colors.grey[100],
         elevation: 0,
         bottom: PreferredSize(

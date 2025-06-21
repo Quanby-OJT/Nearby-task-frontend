@@ -415,7 +415,7 @@ class _TaskPageState extends State<TaskPage>
     return Scaffold(
       backgroundColor: Colors.grey[100],
       appBar: AppBar(
-        centerTitle: false,
+        centerTitle: true,
         title: Text(
           'Task',
           style: GoogleFonts.poppins(
@@ -424,18 +424,18 @@ class _TaskPageState extends State<TaskPage>
             fontWeight: FontWeight.bold,
           ),
         ),
-        actions: [
-          IconButton(
-            key: _moreVertKey,
-            icon: Icon(
-              Icons.more_vert,
-              color: Color(0xFFB71A4A),
-            ),
-            onPressed: () {
-              _showAnimatedMenu(context);
-            },
-          ),
-        ],
+        // actions: [
+        //   IconButton(
+        //     key: _moreVertKey,
+        //     icon: Icon(
+        //       Icons.more_vert,
+        //       color: Color(0xFFB71A4A),
+        //     ),
+        //     onPressed: () {
+        //       _showAnimatedMenu(context);
+        //     },
+        //   ),
+        // ],
         backgroundColor: Colors.grey[100],
         elevation: 0,
       ),
@@ -889,9 +889,9 @@ class _TaskPageState extends State<TaskPage>
         onTap: () {
           _navigateToTaskStatusPage(task);
         },
-        onLongPress: () {
-          _showSelectorModal(context, task);
-        },
+        // onLongPress: () {
+        //   _showSelectorModal(context, task);
+        // },
         child: Padding(
           padding: EdgeInsets.all(16),
           child: Column(

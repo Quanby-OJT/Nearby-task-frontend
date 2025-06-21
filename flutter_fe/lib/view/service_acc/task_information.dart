@@ -737,9 +737,9 @@ class _TaskInformationState extends State<TaskInformation> {
                       _isLoading = true;
                     });
                     try {
-                      downloadFile(context);
-                      final pdf = await generatePdf();
-                      await Printing.layoutPdf(onLayout: (_) => pdf);
+                      // downloadFile(context);
+                      // final pdf = await generatePdf();
+                      // await Printing.layoutPdf(onLayout: (_) => pdf);
                       final result = await taskController.assignTask(
                         widget.taskID ?? 0,
                         _taskInformation!.clientId,

@@ -665,11 +665,11 @@ class _TaskOngoingState extends State<TaskOngoing> {
                               _buildStatusSection(),
                             SizedBox(height: 10),
                             _buildTaskCard(constraints),
-                            SizedBox(height: 10),
-                            // Add milestone customization for taskers
-                            if (widget.taskInformation?.tasker?.user == null &&
-                                tasker?.user.role == 'Tasker')
-                              _buildMilestoneManagementCard(),
+                            // SizedBox(height: 10),
+                            // // Add milestone customization for taskers
+                            // if (widget.taskInformation?.tasker?.user == null &&
+                            //     tasker?.user.role == 'Tasker')
+                            //   _buildMilestoneManagementCard(),
                             if (widget.taskInformation?.tasker?.user == null &&
                                 tasker?.user.role == 'Tasker')
                               SizedBox(height: 10),

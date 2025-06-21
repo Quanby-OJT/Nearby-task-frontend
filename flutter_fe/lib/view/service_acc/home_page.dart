@@ -673,16 +673,16 @@ class _TaskerHomePageState extends State<TaskerHomePage>
                     buildListTile(FontAwesomeIcons.book, "Our Handbook", () {
                       overlayEntry.remove();
                     }),
-                    buildListTile(FontAwesomeIcons.gear, "Configuration", () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) => ConfigurationList()),
-                      ).then((value) => setState(() {
-                            _fetchTasks();
-                          }));
-                      overlayEntry.remove();
-                    }),
+                    // buildListTile(FontAwesomeIcons.gear, "Configuration", () {
+                    //   Navigator.push(
+                    //     context,
+                    //     MaterialPageRoute(
+                    //         builder: (context) => ConfigurationList()),
+                    //   ).then((value) => setState(() {
+                    //         _fetchTasks();
+                    //       }));
+                    //   overlayEntry.remove();
+                    // }),
 
                     buildListTile(FontAwesomeIcons.gears, "Settings", () {
                       Navigator.push(
