@@ -65,15 +65,15 @@ class _SignUpSoloTaskerAccState extends State<SignUpSoloTaskerAcc> {
     );
 
     // Show privacy policy popup after the widget is built
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder: (BuildContext context) {
-          return PrivacyPolicyPopup();
-        },
-      );
-    });
+    // WidgetsBinding.instance.addPostFrameCallback((_) {
+    //   showDialog(
+    //     context: context,
+    //     barrierDismissible: false,
+    //     builder: (BuildContext context) {
+    //       return PrivacyPolicyPopup();
+    //     },
+    //   );
+    // });
   }
 
   Future<void> _initDeepLinkListener() async {

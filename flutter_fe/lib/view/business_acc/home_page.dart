@@ -31,6 +31,8 @@ import 'package:internet_connection_checker/internet_connection_checker.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../profile/legal_terms_and_conditions.dart';
+
 class ClientHomePage extends StatefulWidget {
   const ClientHomePage({super.key});
 
@@ -904,6 +906,7 @@ class _ClientHomePageState extends State<ClientHomePage>
                         ),
                       ),
                       onTap: () {
+                        Navigator.push(context, MaterialPageRoute(builder: (context) => const LegalTermsAndConditionsScreen()));
                         overlayEntry.remove();
                       },
                     ),
