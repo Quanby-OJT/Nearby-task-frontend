@@ -16,248 +16,249 @@ import 'dart:async';
 
 import 'package:image_picker/image_picker.dart';
 
+import '../../components/modals/dispute_bottom_sheet.dart';
 import 'display_list_ongoing.dart';
 
-class _DisputeBottomSheet extends StatefulWidget {
-  final Function(
-          String reasonForDispute, String raisedBy, List<File> imageEvidence)
-      onDisputeSubmit;
-
-  const _DisputeBottomSheet({required this.onDisputeSubmit});
-
-  @override
-  __DisputeBottomSheetState createState() => __DisputeBottomSheetState();
-}
-
-class __DisputeBottomSheetState extends State<_DisputeBottomSheet> {
-  final TextEditingController _disputeTypeController = TextEditingController();
-  final TextEditingController _disputeDetailsController =
-      TextEditingController();
-  final TaskController taskController = TaskController();
-  ClientRequestModel? _requestInformation;
-  final List<File> _imageEvidence = [];
-  final bool _isLoading = false;
-  final String _requestStatus = "";
-
-  final ImagePicker _picker = ImagePicker();
-
-  @override
-  void dispose() {
-    _disputeTypeController.dispose();
-    _disputeDetailsController.dispose();
-    super.dispose();
-  }
-
-  Future _pickImage() async {
-    final pickedFile = await _picker.pickMultiImage(
-      imageQuality: 100,
-      maxWidth: 1000,
-      maxHeight: 1000,
-    );
-
-    List<XFile> xFilePick = pickedFile;
-
-    if (xFilePick.isNotEmpty) {
-      for (int i = 0; i < xFilePick.length; i++) {
-        setState(() {
-          _imageEvidence.add(File(xFilePick[i].path));
-        });
-      }
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: EdgeInsets.only(
-        bottom: MediaQuery.of(context).viewInsets.bottom,
-        left: 16,
-        right: 16,
-        top: 16,
-      ),
-      child: SingleChildScrollView(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Center(
-              child: Text(
-                'File a Dispute',
-                style: GoogleFonts.montserrat(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w600,
-                  color: Color(0xFF03045E),
-                ),
-              ),
-            ),
-            SizedBox(height: 16),
-            Text(
-              'Reason for Dispute',
-              style: GoogleFonts.montserrat(
-                fontSize: 16,
-                fontWeight: FontWeight.w500,
-                color: Color(0xFF03045E),
-              ),
-            ),
-            SizedBox(height: 8),
-            DropdownButtonFormField<String>(
-              value: _disputeTypeController.text.isEmpty
-                  ? '--Select Reason of Dispute--'
-                  : _disputeTypeController.text,
-              items: <String>[
-                '--Select Reason of Dispute--',
-                'Poor Quality of Work',
-                'Breach of Contract',
-                'Task Still Not Completed',
-                'Tasker Did Not Finish what\'s Required',
-                'Others (Provide Details)'
-              ].map<DropdownMenuItem<String>>((String value) {
-                return DropdownMenuItem<String>(
-                  value: value,
-                  child:
-                      Text(value, style: GoogleFonts.montserrat(fontSize: 14)),
-                );
-              }).toList(),
-              onChanged: (String? newValue) {
-                setState(() {
-                  _disputeTypeController.text = newValue ?? '';
-                });
-              },
-              decoration: InputDecoration(
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: Colors.grey[300]!),
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: Colors.grey[300]!),
-                ),
-              ),
-            ),
-            SizedBox(height: 16),
-            // Dispute Field
-            Text(
-              'Details of the Dispute',
-              style: GoogleFonts.montserrat(
-                fontSize: 16,
-                fontWeight: FontWeight.w500,
-                color: Color(0xFF03045E),
-              ),
-            ),
-            SizedBox(height: 8),
-            TextField(
-              controller: _disputeDetailsController,
-              maxLines: 3,
-              decoration: InputDecoration(
-                hintText: 'Provide Details About the Dispute',
-                hintStyle: GoogleFonts.montserrat(color: Colors.grey[400]),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: Colors.grey[300]!),
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: Colors.grey[300]!),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: Color(0xFF03045E)),
-                ),
-              ),
-              style: GoogleFonts.montserrat(fontSize: 14),
-            ),
-            SizedBox(height: 16),
-            Text('Provide some Evidence',
-                style: GoogleFonts.montserrat(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w500,
-                    color: Color(0xFF03045E))),
-            SizedBox(height: 8),
-            GestureDetector(
-              onTap: _pickImage,
-              child: Container(
-                height: 120,
-                width: double.infinity,
-                decoration: BoxDecoration(
-                  border: Border.all(color: Colors.grey[300]!),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: _imageEvidence != null
-                    ? SizedBox(
-                        width: 300.0, // To show images in particular area only
-                        child: _imageEvidence
-                                .isEmpty // If no images is selected
-                            ? const Center(
-                                child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                    Icon(FontAwesomeIcons.fileImage,
-                                        size: 40, color: Colors.grey),
-                                    SizedBox(width: 8),
-                                    Text(
-                                        'Upload Photos (Screenshots, Actual Work)',
-                                        style: TextStyle(
-                                            fontSize: 16, color: Colors.grey))
-                                  ]))
-                            // If atleast 1 images is selected
-                            : GridView.builder(
-                                itemCount: _imageEvidence.length,
-                                gridDelegate:
-                                    const SliverGridDelegateWithFixedCrossAxisCount(
-                                        crossAxisCount: 3
-                                        // Horizontally only 3 images will show
-                                        ),
-                                itemBuilder: (BuildContext context, int index) {
-                                  // TO show selected file
-                                  return Center(
-                                      child: kIsWeb
-                                          ? Image.network(
-                                              _imageEvidence[index].path)
-                                          : Image.file(_imageEvidence[index]));
-                                  // If you are making the web app then you have to
-                                  // use image provider as network image or in
-                                  // android or iOS it will as file only
-                                },
-                              ),
-                      )
-                    : Icon(Icons.add_photo_alternate,
-                        size: 40, color: Colors.grey[400]),
-              ),
-            ),
-            SizedBox(height: 24),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: () {
-                  widget.onDisputeSubmit(_disputeTypeController.text,
-                      _disputeDetailsController.text, _imageEvidence);
-                  Navigator.pop(context);
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Color(0xFF03045E),
-                  padding: EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  elevation: 2,
-                ),
-                child: Text(
-                  'Open a Dispute',
-                  style: GoogleFonts.montserrat(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.white,
-                  ),
-                ),
-              ),
-            ),
-            SizedBox(height: 16),
-          ],
-        ),
-      ),
-    );
-  }
-}
+// class _DisputeBottomSheet extends StatefulWidget {
+//   final Function(
+//           String reasonForDispute, String raisedBy, List<File> imageEvidence)
+//       onDisputeSubmit;
+//
+//   const _DisputeBottomSheet({required this.onDisputeSubmit});
+//
+//   @override
+//   __DisputeBottomSheetState createState() => __DisputeBottomSheetState();
+// }
+//
+// class __DisputeBottomSheetState extends State<_DisputeBottomSheet> {
+//   final TextEditingController _disputeTypeController = TextEditingController();
+//   final TextEditingController _disputeDetailsController =
+//       TextEditingController();
+//   final TaskController taskController = TaskController();
+//   ClientRequestModel? _requestInformation;
+//   final List<File> _imageEvidence = [];
+//   final bool _isLoading = false;
+//   final String _requestStatus = "";
+//
+//   final ImagePicker _picker = ImagePicker();
+//
+//   @override
+//   void dispose() {
+//     _disputeTypeController.dispose();
+//     _disputeDetailsController.dispose();
+//     super.dispose();
+//   }
+//
+//   Future _pickImage() async {
+//     final pickedFile = await _picker.pickMultiImage(
+//       imageQuality: 100,
+//       maxWidth: 1000,
+//       maxHeight: 1000,
+//     );
+//
+//     List<XFile> xFilePick = pickedFile;
+//
+//     if (xFilePick.isNotEmpty) {
+//       for (int i = 0; i < xFilePick.length; i++) {
+//         setState(() {
+//           _imageEvidence.add(File(xFilePick[i].path));
+//         });
+//       }
+//     }
+//   }
+//
+//   @override
+//   Widget build(BuildContext context) {
+//     return Padding(
+//       padding: EdgeInsets.only(
+//         bottom: MediaQuery.of(context).viewInsets.bottom,
+//         left: 16,
+//         right: 16,
+//         top: 16,
+//       ),
+//       child: SingleChildScrollView(
+//         child: Column(
+//           mainAxisSize: MainAxisSize.min,
+//           crossAxisAlignment: CrossAxisAlignment.start,
+//           children: [
+//             Center(
+//               child: Text(
+//                 'File a Dispute',
+//                 style: GoogleFonts.montserrat(
+//                   fontSize: 20,
+//                   fontWeight: FontWeight.w600,
+//                   color: Color(0xFF03045E),
+//                 ),
+//               ),
+//             ),
+//             SizedBox(height: 16),
+//             Text(
+//               'Reason for Dispute',
+//               style: GoogleFonts.montserrat(
+//                 fontSize: 16,
+//                 fontWeight: FontWeight.w500,
+//                 color: Color(0xFF03045E),
+//               ),
+//             ),
+//             SizedBox(height: 8),
+//             DropdownButtonFormField<String>(
+//               value: _disputeTypeController.text.isEmpty
+//                   ? '--Select Reason of Dispute--'
+//                   : _disputeTypeController.text,
+//               items: <String>[
+//                 '--Select Reason of Dispute--',
+//                 'Poor Quality of Work',
+//                 'Breach of Contract',
+//                 'Task Still Not Completed',
+//                 'Tasker Did Not Finish what\'s Required',
+//                 'Others (Provide Details)'
+//               ].map<DropdownMenuItem<String>>((String value) {
+//                 return DropdownMenuItem<String>(
+//                   value: value,
+//                   child:
+//                       Text(value, style: GoogleFonts.montserrat(fontSize: 14)),
+//                 );
+//               }).toList(),
+//               onChanged: (String? newValue) {
+//                 setState(() {
+//                   _disputeTypeController.text = newValue ?? '';
+//                 });
+//               },
+//               decoration: InputDecoration(
+//                 border: OutlineInputBorder(
+//                   borderRadius: BorderRadius.circular(12),
+//                   borderSide: BorderSide(color: Colors.grey[300]!),
+//                 ),
+//                 enabledBorder: OutlineInputBorder(
+//                   borderRadius: BorderRadius.circular(12),
+//                   borderSide: BorderSide(color: Colors.grey[300]!),
+//                 ),
+//               ),
+//             ),
+//             SizedBox(height: 16),
+//             // Dispute Field
+//             Text(
+//               'Details of the Dispute',
+//               style: GoogleFonts.montserrat(
+//                 fontSize: 16,
+//                 fontWeight: FontWeight.w500,
+//                 color: Color(0xFF03045E),
+//               ),
+//             ),
+//             SizedBox(height: 8),
+//             TextField(
+//               controller: _disputeDetailsController,
+//               maxLines: 3,
+//               decoration: InputDecoration(
+//                 hintText: 'Provide Details About the Dispute',
+//                 hintStyle: GoogleFonts.montserrat(color: Colors.grey[400]),
+//                 border: OutlineInputBorder(
+//                   borderRadius: BorderRadius.circular(12),
+//                   borderSide: BorderSide(color: Colors.grey[300]!),
+//                 ),
+//                 enabledBorder: OutlineInputBorder(
+//                   borderRadius: BorderRadius.circular(12),
+//                   borderSide: BorderSide(color: Colors.grey[300]!),
+//                 ),
+//                 focusedBorder: OutlineInputBorder(
+//                   borderRadius: BorderRadius.circular(12),
+//                   borderSide: BorderSide(color: Color(0xFF03045E)),
+//                 ),
+//               ),
+//               style: GoogleFonts.montserrat(fontSize: 14),
+//             ),
+//             SizedBox(height: 16),
+//             Text('Provide some Evidence',
+//                 style: GoogleFonts.montserrat(
+//                     fontSize: 16,
+//                     fontWeight: FontWeight.w500,
+//                     color: Color(0xFF03045E))),
+//             SizedBox(height: 8),
+//             GestureDetector(
+//               onTap: _pickImage,
+//               child: Container(
+//                 height: 120,
+//                 width: double.infinity,
+//                 decoration: BoxDecoration(
+//                   border: Border.all(color: Colors.grey[300]!),
+//                   borderRadius: BorderRadius.circular(12),
+//                 ),
+//                 child: _imageEvidence != null
+//                     ? SizedBox(
+//                         width: 300.0, // To show images in particular area only
+//                         child: _imageEvidence
+//                                 .isEmpty // If no images is selected
+//                             ? const Center(
+//                                 child: Row(
+//                                     mainAxisAlignment: MainAxisAlignment.center,
+//                                     children: [
+//                                     Icon(FontAwesomeIcons.fileImage,
+//                                         size: 40, color: Colors.grey),
+//                                     SizedBox(width: 8),
+//                                     Text(
+//                                         'Upload Photos (Screenshots, Actual Work)',
+//                                         style: TextStyle(
+//                                             fontSize: 16, color: Colors.grey))
+//                                   ]))
+//                             // If atleast 1 images is selected
+//                             : GridView.builder(
+//                                 itemCount: _imageEvidence.length,
+//                                 gridDelegate:
+//                                     const SliverGridDelegateWithFixedCrossAxisCount(
+//                                         crossAxisCount: 3
+//                                         // Horizontally only 3 images will show
+//                                         ),
+//                                 itemBuilder: (BuildContext context, int index) {
+//                                   // TO show selected file
+//                                   return Center(
+//                                       child: kIsWeb
+//                                           ? Image.network(
+//                                               _imageEvidence[index].path)
+//                                           : Image.file(_imageEvidence[index]));
+//                                   // If you are making the web app then you have to
+//                                   // use image provider as network image or in
+//                                   // android or iOS it will as file only
+//                                 },
+//                               ),
+//                       )
+//                     : Icon(Icons.add_photo_alternate,
+//                         size: 40, color: Colors.grey[400]),
+//               ),
+//             ),
+//             SizedBox(height: 24),
+//             SizedBox(
+//               width: double.infinity,
+//               child: ElevatedButton(
+//                 onPressed: () {
+//                   widget.onDisputeSubmit(_disputeTypeController.text,
+//                       _disputeDetailsController.text, _imageEvidence);
+//                   Navigator.pop(context);
+//                 },
+//                 style: ElevatedButton.styleFrom(
+//                   backgroundColor: Color(0xFF03045E),
+//                   padding: EdgeInsets.symmetric(vertical: 16),
+//                   shape: RoundedRectangleBorder(
+//                     borderRadius: BorderRadius.circular(12),
+//                   ),
+//                   elevation: 2,
+//                 ),
+//                 child: Text(
+//                   'Open a Dispute',
+//                   style: GoogleFonts.montserrat(
+//                     fontSize: 16,
+//                     fontWeight: FontWeight.w600,
+//                     color: Colors.white,
+//                   ),
+//                 ),
+//               ),
+//             ),
+//             SizedBox(height: 16),
+//           ],
+//         ),
+//       ),
+//     );
+//   }
+// }
 
 class ClientReview extends StatefulWidget {
   final int? requestID;
@@ -462,58 +463,9 @@ class _ClientReviewState extends State<ClientReview> {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
-      builder: (childContext) => _DisputeBottomSheet(
-        onDisputeSubmit: (String reasonForDispute, String disputeDetails,
-            List<File> imageEvidence) async {
-          setState(() {
-            _isLoading = true;
-          });
-          try {
-            bool result = await taskController.raiseADispute(
-                _requestInformation?.task_taken_id ?? 0,
-                'Disputed',
-                widget.role ?? '',
-                reasonForDispute,
-                disputeDetails,
-                imageEvidence);
-
-            if (result && mounted) {
-              setState(() {
-                _requestStatus = 'Disputed';
-              });
-              Navigator.push(
-                childContext,
-                MaterialPageRoute(
-                    builder: (context) => DisplayListRecordOngoing()),
-              );
-              ScaffoldMessenger.of(childContext).showMaterialBanner(MaterialBanner(
-                  backgroundColor: Color(0XFFD6932A),
-                  content: Text(
-                      "Dispute has been Raised. Wait for the Tasker to respond."),
-                  actions: [
-                    TextButton(
-                        onPressed: Navigator.of(childContext).pop,
-                        child: Text('Dismiss'))
-                  ]));
-            } else {
-              ScaffoldMessenger.of(childContext).showSnackBar(
-                SnackBar(
-                    content:
-                        Text('Failed to raise dispute. Please Try Again.')),
-              );
-            }
-          } catch (e, stackTrace) {
-            debugPrint("Error finishing task: $e.");
-            debugPrintStack(stackTrace: stackTrace);
-            ScaffoldMessenger.of(childContext).showSnackBar(
-              SnackBar(content: Text('Error occurred')),
-            );
-          } finally {
-            setState(() {
-              _isLoading = false;
-            });
-          }
-        },
+      builder: (childContext) => DisputeBottomSheet(
+        taskInformation: _taskInformation!,
+        requestInformation: _requestInformation!,
       ),
     );
   }

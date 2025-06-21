@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_fe/view/components/modals/dispute_bottom_sheet.dart';
 import 'package:flutter_fe/view/task/task_disputed.dart';
 import 'package:flutter_fe/view/task/task_review.dart';
 import 'package:flutter_fe/view/task_user/user_feedback.dart';
@@ -15,6 +16,8 @@ import 'package:flutter_fe/model/client_request.dart';
 import 'package:flutter_fe/model/task_fetch.dart';
 import 'package:flutter_fe/model/task_model.dart';
 import 'package:flutter_fe/service/job_post_service.dart';
+import 'package:flutter_fe/service/tasker_service.dart';
+import 'package:flutter_fe/service/client_service.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:async';
@@ -41,6 +44,10 @@ class _TaskOngoingState extends State<TaskOngoing> {
   Duration? _timeRemaining;
   Timer? _timer;
   String _requestStatus = 'Unknown';
+
+  // Profile image caching
+  String? _taskerProfileImageUrl;
+  String? _clientProfileImageUrl;
 
   final int _rating = 0;
   final TextEditingController _feedbackController = TextEditingController();
@@ -113,6 +120,7 @@ class _TaskOngoingState extends State<TaskOngoing> {
       });
       await _fetchTaskDetails();
       await _fetchTaskerDetails(_requestInformation!.tasker_id as int);
+      await _fetchProfileImages();
     } catch (e) {
       debugPrint("Error fetching task details: $e");
       setState(() {
@@ -135,6 +143,161 @@ class _TaskOngoingState extends State<TaskOngoing> {
         _isLoading = false;
       });
     }
+  }
+
+  // Fetch profile images for both tasker and client
+  Future<void> _fetchProfileImages() async {
+    await Future.wait([
+      _fetchTaskerProfileImage(),
+      _fetchClientProfileImage(),
+    ]);
+  }
+
+  // Fetch tasker profile image
+  Future<void> _fetchTaskerProfileImage() async {
+    try {
+      int? taskerId;
+
+      // Try different ways to get the tasker ID
+      if (widget.taskInformation?.tasker?.user?.id != null) {
+        taskerId = widget.taskInformation!.tasker!.user!.id!;
+      } else if (_requestInformation?.tasker_id != null) {
+        taskerId = _requestInformation!.tasker_id as int;
+      } else if (widget.taskInformation?.tasker?.userId != null) {
+        taskerId = widget.taskInformation!.tasker!.userId;
+      }
+
+      if (taskerId != null) {
+        debugPrint("Fetching tasker profile image for ID: $taskerId");
+        final taskerService = TaskerService();
+        final result = await taskerService.getTaskerImages(taskerId);
+
+        if (result.containsKey('images') && result['images'] is List) {
+          final List<dynamic> images = result['images'];
+          if (images.isNotEmpty) {
+            final firstImage = images.first;
+            if (firstImage is Map && firstImage['image_link'] != null) {
+              if (mounted) {
+                setState(() {
+                  _taskerProfileImageUrl = firstImage['image_link'];
+                });
+              }
+              debugPrint(
+                  "✅ Found tasker profile image: $_taskerProfileImageUrl");
+            }
+          }
+        }
+      }
+    } catch (e) {
+      debugPrint("Error fetching tasker profile image: $e");
+    }
+  }
+
+  // Fetch client profile image
+  Future<void> _fetchClientProfileImage() async {
+    try {
+      int? clientId;
+
+      // Try different ways to get the client ID
+      if (widget.taskInformation?.taskDetails?.client?.user?.id != null) {
+        clientId = widget.taskInformation!.taskDetails!.client!.user!.id!;
+      } else if (_requestInformation?.client_id != null) {
+        clientId = _requestInformation!.client_id as int;
+      }
+
+      if (clientId != null) {
+        debugPrint("Fetching client profile image for ID: $clientId");
+        final clientService = ClientServices();
+        final result = await clientService.getClientImages(clientId);
+
+        if (result.containsKey('images') && result['images'] is List) {
+          final List<dynamic> images = result['images'];
+          if (images.isNotEmpty) {
+            final firstImage = images.first;
+            if (firstImage is Map && firstImage['image_link'] != null) {
+              if (mounted) {
+                setState(() {
+                  _clientProfileImageUrl = firstImage['image_link'];
+                });
+              }
+              debugPrint(
+                  "✅ Found client profile image: $_clientProfileImageUrl");
+            }
+          }
+        }
+      }
+    } catch (e) {
+      debugPrint("Error fetching client profile image: $e");
+    }
+  }
+
+  // Get tasker profile image decoration with priority logic
+  DecorationImage? _getTaskerProfileImageDecoration() {
+    // Priority 1: Profile image from tasker_images table
+    if (_taskerProfileImageUrl != null && _taskerProfileImageUrl!.isNotEmpty) {
+      return DecorationImage(
+        image: NetworkImage(_taskerProfileImageUrl!),
+        fit: BoxFit.cover,
+        onError: (exception, stackTrace) {
+          debugPrint('Error loading tasker profile image: $exception');
+          if (mounted) {
+            setState(() {
+              _taskerProfileImageUrl = null; // Clear the failed URL
+            });
+          }
+        },
+      );
+    }
+
+    // Priority 2: Default user image from user.image field
+    final userImage = widget.taskInformation?.tasker?.user?.image ??
+        widget.taskInformation?.tasker?.user?.imageName;
+    if (userImage != null && userImage.isNotEmpty && userImage != "Unknown") {
+      return DecorationImage(
+        image: NetworkImage(userImage),
+        fit: BoxFit.cover,
+        onError: (exception, stackTrace) {
+          debugPrint('Error loading default tasker image: $exception');
+        },
+      );
+    }
+
+    return null;
+  }
+
+  // Get client profile image decoration with priority logic
+  DecorationImage? _getClientProfileImageDecoration() {
+    // Priority 1: Profile image from client_images table
+    if (_clientProfileImageUrl != null && _clientProfileImageUrl!.isNotEmpty) {
+      return DecorationImage(
+        image: NetworkImage(_clientProfileImageUrl!),
+        fit: BoxFit.cover,
+        onError: (exception, stackTrace) {
+          debugPrint('Error loading client profile image: $exception');
+          if (mounted) {
+            setState(() {
+              _clientProfileImageUrl = null; // Clear the failed URL
+            });
+          }
+        },
+      );
+    }
+
+    // Priority 2: Default user image from user.image field
+    final userImage =
+        widget.taskInformation?.taskDetails?.client?.user?.image ??
+            widget.taskInformation?.taskDetails?.client?.user?.imageName;
+    if (userImage != null && userImage.isNotEmpty && userImage != "Unknown") {
+      return DecorationImage(
+        image: NetworkImage(userImage),
+        fit: BoxFit.cover,
+        onError: (exception, stackTrace) {
+          debugPrint('Error loading default client image: $exception');
+        },
+      );
+    }
+
+    return null;
   }
 
   Future<void> _pickImage() async {
@@ -186,7 +349,10 @@ class _TaskOngoingState extends State<TaskOngoing> {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
-      builder: (childContext) => _buildDisputeBottomSheet(),
+      builder: (childContext) => DisputeBottomSheet(
+          taskInformation: _taskInformation!,
+          requestInformation: _requestInformation!
+      ),
     );
   }
 
@@ -537,7 +703,7 @@ class _TaskOngoingState extends State<TaskOngoing> {
         padding: EdgeInsets.all(20),
         decoration: BoxDecoration(
           gradient: LinearGradient(
-            colors: [Color(0xFF03045E), Color(0xFF0A2472)],
+            colors: [Color(0xFFB71A4A), Color(0xFFB71A4A)],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
@@ -1050,8 +1216,7 @@ class _TaskOngoingState extends State<TaskOngoing> {
                         Theme.of(context).colorScheme.primary.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  child: Icon(Icons.task,
-                      color: Theme.of(context).colorScheme.primary, size: 24),
+                  child: Icon(Icons.task, color: Color(0xFFB71A4A), size: 24),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
@@ -1074,10 +1239,9 @@ class _TaskOngoingState extends State<TaskOngoing> {
             ),
             const SizedBox(height: 16),
             _buildTaskInfoRow(
-              icon: FontAwesomeIcons.briefcase,
-              label: 'Work Type',
-              value: _taskInformation!.workType ?? 'N/A',
-            ),
+                icon: FontAwesomeIcons.briefcase,
+                label: 'Work Type',
+                value: _taskInformation!.workType ?? 'N/A'),
             _buildTaskInfoRow(
               icon: FontAwesomeIcons.star,
               label: 'Specialization',
@@ -1085,10 +1249,9 @@ class _TaskOngoingState extends State<TaskOngoing> {
                   'N/A',
             ),
             _buildTaskInfoRow(
-              icon: FontAwesomeIcons.dollarSign,
-              label: 'Contract Price',
-              value: _taskInformation!.contactPrice.toString() ?? 'N/A',
-            ),
+                icon: FontAwesomeIcons.dollarSign,
+                label: 'Contract Price',
+                value: _taskInformation!.contactPrice.toString() ?? 'N/A'),
             _buildTaskInfoRow(
               icon: FontAwesomeIcons.info,
               label: 'Status',
@@ -1101,23 +1264,20 @@ class _TaskOngoingState extends State<TaskOngoing> {
                   ? DateFormat('MMM dd, yyyy HH:mm a').format(DateTime.parse(
                       _requestInformation?.task?.taskBeginDate ?? ''))
                   : 'N/A',
-            ),
+            )
           ],
         ),
       ),
     );
   }
 
-  Widget _buildTaskInfoRow({
-    required IconData icon,
-    required String label,
-    required String value,
-  }) {
+  Widget _buildTaskInfoRow(
+      {required IconData icon, required String label, required String value}) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: Row(
         children: [
-          FaIcon(icon, size: 18, color: Theme.of(context).colorScheme.primary),
+          FaIcon(icon, size: 18, color: Color(0xFFB71A4A)),
           const SizedBox(width: 12),
           Text(
             '$label: ',
@@ -1156,11 +1316,14 @@ class _TaskOngoingState extends State<TaskOngoing> {
                 CircleAvatar(
                   radius: 24,
                   backgroundColor: Color(0xFF03045E).withOpacity(0.1),
-                  child: Icon(
-                    Icons.person,
-                    color: Color(0xFF03045E),
-                    size: 28,
-                  ),
+                  backgroundImage: _getTaskerProfileImageDecoration()?.image,
+                  child: _getTaskerProfileImageDecoration() == null
+                      ? Icon(
+                          Icons.person,
+                          color: Color(0xFFB71A4A),
+                          size: 28,
+                        )
+                      : null,
                 ),
                 SizedBox(width: 12),
                 Column(
@@ -1171,7 +1334,7 @@ class _TaskOngoingState extends State<TaskOngoing> {
                       style: GoogleFonts.poppins(
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
-                        color: Color(0xFF03045E),
+                        color: Color(0xFFB71A4A),
                       ),
                     ),
                     Text(
@@ -1187,27 +1350,32 @@ class _TaskOngoingState extends State<TaskOngoing> {
             ),
             SizedBox(height: 16),
             _buildProfileInfoRow(
-              'Name',
-              (widget.taskInformation?.tasker?.user != null)
-                  ? '${widget.taskInformation!.tasker!.user!.firstName ?? ''} ${widget.taskInformation!.tasker!.user!.lastName ?? ''}'
-                      .trim()
-                  : 'Not available',
-            ),
+                'Name',
+                (widget.taskInformation?.tasker?.user != null)
+                    ? '${widget.taskInformation!.tasker!.user!.firstName ?? ''} ${widget.taskInformation!.tasker!.user!.lastName ?? ''}'
+                        .trim()
+                    : 'Not available',
+                Color(0xFFB71A4A)),
             SizedBox(height: 8),
-            _buildProfileInfoRow('Email',
-                widget.taskInformation?.tasker?.user?.email ?? 'Not available'),
+            _buildProfileInfoRow(
+                'Email',
+                widget.taskInformation?.tasker?.user?.email ?? 'Not available',
+                Color(0xFFB71A4A)),
             SizedBox(height: 8),
             _buildProfileInfoRow(
                 'Phone',
                 widget.taskInformation?.tasker?.user?.contact ??
-                    'Not available'),
+                    'Not available',
+                Color(0xFFB71A4A)),
             SizedBox(height: 8),
             _buildProfileInfoRow(
                 'Status',
                 widget.taskInformation?.tasker?.user?.accStatus ??
-                    'Not available'),
+                    'Not available',
+                Color(0xFFB71A4A)),
             SizedBox(height: 8),
-            _buildProfileInfoRow('Account', 'Verified', isVerified: true),
+            _buildProfileInfoRow('Account', 'Verified', Color(0xFFB71A4A),
+                isVerified: true),
           ],
         ),
       ),
@@ -1228,11 +1396,14 @@ class _TaskOngoingState extends State<TaskOngoing> {
                 CircleAvatar(
                   radius: 24,
                   backgroundColor: Color(0xFF03045E).withOpacity(0.1),
-                  child: Icon(
-                    Icons.person,
-                    color: Color(0xFF03045E),
-                    size: 28,
-                  ),
+                  backgroundImage: _getClientProfileImageDecoration()?.image,
+                  child: _getClientProfileImageDecoration() == null
+                      ? Icon(
+                          Icons.person,
+                          color: Color(0xFFB71A4A),
+                          size: 28,
+                        )
+                      : null,
                 ),
                 SizedBox(width: 12),
                 Column(
@@ -1243,7 +1414,7 @@ class _TaskOngoingState extends State<TaskOngoing> {
                       style: GoogleFonts.poppins(
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
-                        color: Color(0xFF03045E),
+                        color: Color(0xFFB71A4A),
                       ),
                     ),
                     Text(
@@ -1259,36 +1430,44 @@ class _TaskOngoingState extends State<TaskOngoing> {
             ),
             SizedBox(height: 16),
             _buildProfileInfoRow(
-              'Name',
-              (widget.taskInformation?.taskDetails!.client?.user != null)
-                  ? '${widget.taskInformation!.taskDetails!.client!.user!.firstName ?? ''} ${widget.taskInformation!.taskDetails!.client!.user!.lastName ?? ''}'
-                      .trim()
-                  : 'Not available',
-            ),
+                'Name',
+                (widget.taskInformation?.taskDetails!.client?.user != null)
+                    ? '${widget.taskInformation!.taskDetails!.client!.user!.firstName ?? ''} ${widget.taskInformation!.taskDetails!.client!.user!.lastName ?? ''}'
+                        .trim()
+                    : 'Not available',
+                Color(0xFFB71A4A)),
             SizedBox(height: 8),
             _buildProfileInfoRow(
                 'Email',
                 widget.taskInformation?.taskDetails!.client?.user?.email ??
-                    'Not available'),
+                    'Not available',
+                Color(0xFFB71A4A)),
             SizedBox(height: 8),
             _buildProfileInfoRow(
                 'Phone',
                 widget.taskInformation?.taskDetails!.client?.user?.contact ??
-                    'Not available'),
+                    'Not available',
+                Color(0xFFB71A4A)),
             SizedBox(height: 8),
             _buildProfileInfoRow(
                 'Status',
                 widget.taskInformation?.taskDetails!.client?.user?.accStatus ??
-                    'Not available'),
+                    'Not available',
+                Color(0xFFB71A4A)),
             SizedBox(height: 8),
-            _buildProfileInfoRow('Account', 'Verified', isVerified: true),
+            _buildProfileInfoRow(
+              'Account',
+              'Verified',
+              Color(0xFFB71A4A),
+              isVerified: true,
+            ),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildProfileInfoRow(String label, String value,
+  Widget _buildProfileInfoRow(String label, String value, Color color,
       {bool isVerified = false}) {
     return Row(
       children: [
@@ -1309,7 +1488,7 @@ class _TaskOngoingState extends State<TaskOngoing> {
                   style: GoogleFonts.poppins(
                     fontSize: 14,
                     fontWeight: FontWeight.w500,
-                    color: Color(0xFF03045E),
+                    color: Color(0xFFB71A4A),
                   ),
                 ),
               ),

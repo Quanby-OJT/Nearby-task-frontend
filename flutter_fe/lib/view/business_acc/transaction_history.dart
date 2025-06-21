@@ -15,6 +15,8 @@ import 'package:flutter_fe/controller/escrow_management_controller.dart';
 import 'package:flutter_fe/model/transactions.dart';
 import 'package:flutter_fe/view/task/task_details_screen.dart';
 import 'package:flutter_fe/controller/task_controller.dart';
+import 'package:flutter_fe/service/tasker_service.dart';
+import 'package:flutter_fe/service/client_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 
@@ -45,6 +47,10 @@ class _TransactionHistoryPageState extends State<TransactionHistoryPage>
   bool _isUploadDialogShown = false;
   late SharedPreferences _prefs;
   final Connectivity _connectivity = Connectivity();
+
+  // Profile image caching
+  final Map<int, String> _taskerProfileImages = {};
+  final Map<int, String> _clientProfileImages = {};
 
   @override
   void initState() {
@@ -146,6 +152,37 @@ class _TransactionHistoryPageState extends State<TransactionHistoryPage>
         _escrowManagementController.tokenCredits.value =
             double.parse(cachedBalance).toInt();
       }
+
+      // Load cached profile images
+      final cachedTaskerImages =
+          _prefs.getString('cached_tasker_profile_images');
+      if (cachedTaskerImages != null) {
+        final Map<String, dynamic> taskerImageData =
+            json.decode(cachedTaskerImages);
+        setState(() {
+          _taskerProfileImages.clear();
+          taskerImageData.forEach((key, value) {
+            _taskerProfileImages[int.parse(key)] = value.toString();
+          });
+          debugPrint(
+              "Loaded ${_taskerProfileImages.length} tasker profile images from cache");
+        });
+      }
+
+      final cachedClientImages =
+          _prefs.getString('cached_client_profile_images');
+      if (cachedClientImages != null) {
+        final Map<String, dynamic> clientImageData =
+            json.decode(cachedClientImages);
+        setState(() {
+          _clientProfileImages.clear();
+          clientImageData.forEach((key, value) {
+            _clientProfileImages[int.parse(key)] = value.toString();
+          });
+          debugPrint(
+              "Loaded ${_clientProfileImages.length} client profile images from cache");
+        });
+      }
     } catch (e) {
       debugPrint("Error loading cached data: $e");
     }
@@ -167,6 +204,21 @@ class _TransactionHistoryPageState extends State<TransactionHistoryPage>
         _escrowManagementController.tokenCredits.value.toString(),
       );
       debugPrint("Saved balance to cache");
+
+      // Save profile images to cache
+      if (_taskerProfileImages.isNotEmpty) {
+        await _prefs.setString(
+            'cached_tasker_profile_images', json.encode(_taskerProfileImages));
+        debugPrint(
+            "Saved ${_taskerProfileImages.length} tasker profile images to cache");
+      }
+
+      if (_clientProfileImages.isNotEmpty) {
+        await _prefs.setString(
+            'cached_client_profile_images', json.encode(_clientProfileImages));
+        debugPrint(
+            "Saved ${_clientProfileImages.length} client profile images to cache");
+      }
     } catch (e) {
       debugPrint("Error saving data to cache: $e");
     }
@@ -178,12 +230,13 @@ class _TransactionHistoryPageState extends State<TransactionHistoryPage>
     loadingController.repeat(reverse: true);
 
     try {
-      Future.wait({
+      await Future.wait([
         _escrowManagementController.fetchTokenBalance(),
         getTransactionHistory(),
         _fetchUserData(),
-        _saveDataToCache(),
-      });
+      ]);
+      await _fetchAllProfileImages();
+      await _saveDataToCache();
     } finally {
       if (mounted) {
         loadingController.stop();
@@ -207,7 +260,8 @@ class _TransactionHistoryPageState extends State<TransactionHistoryPage>
 
       if (userId == null) return;
 
-      AuthenticatedUser? user = await _profileController.getAuthenticatedUser(context, userId);
+      AuthenticatedUser? user =
+          await _profileController.getAuthenticatedUser(context, userId);
 
       debugPrint("Current User Status: ${user?.user.accStatus}");
 
@@ -218,6 +272,131 @@ class _TransactionHistoryPageState extends State<TransactionHistoryPage>
       debugPrint("Error fetching user data: $e");
       debugPrintStack(stackTrace: stackTrace);
     }
+  }
+
+  // Fetch profile images for all taskers and clients in transactions
+  Future<void> _fetchAllProfileImages() async {
+    try {
+      debugPrint("Starting to fetch profile images for transactions");
+      final Set<int> taskerIds = {};
+      final Set<int> clientIds = {};
+
+      // Collect unique tasker and client IDs from transactions
+      for (final transaction in _transactionHistory) {
+        // Collect tasker IDs
+        if (transaction.taskAssignment.tasker?.user?.id != null) {
+          taskerIds.add(transaction.taskAssignment.tasker!.user!.id!);
+        }
+
+        // Collect client IDs
+        if (transaction.taskAssignment.client?.user?.id != null) {
+          clientIds.add(transaction.taskAssignment.client!.user!.id!);
+        }
+      }
+
+      debugPrint(
+          "Found ${taskerIds.length} unique taskers and ${clientIds.length} unique clients");
+
+      // Fetch tasker profile images
+      for (final taskerId in taskerIds) {
+        if (_taskerProfileImages.containsKey(taskerId)) continue;
+
+        try {
+          final taskerService = TaskerService();
+          final result = await taskerService.getTaskerImages(taskerId);
+
+          if (result.containsKey('images') && result['images'] is List) {
+            final List<dynamic> images = result['images'];
+            if (images.isNotEmpty) {
+              final firstImage = images.first;
+              if (firstImage is Map && firstImage['image_link'] != null) {
+                if (mounted) {
+                  setState(() {
+                    _taskerProfileImages[taskerId] = firstImage['image_link'];
+                  });
+                }
+                debugPrint("✅ Cached tasker profile image for ID $taskerId");
+              }
+            }
+          }
+        } catch (e) {
+          debugPrint(
+              "❌ Error fetching tasker profile image for ID $taskerId: $e");
+        }
+      }
+
+      // Fetch client profile images
+      for (final clientId in clientIds) {
+        if (_clientProfileImages.containsKey(clientId)) continue;
+
+        try {
+          final clientService = ClientServices();
+          final result = await clientService.getClientImages(clientId);
+
+          if (result.containsKey('images') && result['images'] is List) {
+            final List<dynamic> images = result['images'];
+            if (images.isNotEmpty) {
+              final firstImage = images.first;
+              if (firstImage is Map && firstImage['image_link'] != null) {
+                if (mounted) {
+                  setState(() {
+                    _clientProfileImages[clientId] = firstImage['image_link'];
+                  });
+                }
+                debugPrint("✅ Cached client profile image for ID $clientId");
+              }
+            }
+          }
+        } catch (e) {
+          debugPrint(
+              "❌ Error fetching client profile image for ID $clientId: $e");
+        }
+      }
+
+      debugPrint(
+          "Profile image caching complete. Taskers: ${_taskerProfileImages.length}, Clients: ${_clientProfileImages.length}");
+    } catch (e) {
+      debugPrint("Error in _fetchAllProfileImages: $e");
+    }
+  }
+
+  // Get tasker profile image decoration with priority logic
+  DecorationImage? _getTaskerProfileImageDecoration(Transactions transaction) {
+    final taskerId = transaction.taskAssignment.tasker?.user?.id;
+
+    // Priority 1: Profile image from tasker_images table
+    if (taskerId != null && _taskerProfileImages.containsKey(taskerId)) {
+      final profileImageUrl = _taskerProfileImages[taskerId];
+      if (profileImageUrl != null && profileImageUrl.isNotEmpty) {
+        return DecorationImage(
+          image: NetworkImage(profileImageUrl),
+          fit: BoxFit.cover,
+          onError: (exception, stackTrace) {
+            debugPrint('Error loading tasker profile image: $exception');
+            if (mounted) {
+              setState(() {
+                _taskerProfileImages.remove(taskerId); // Clear the failed URL
+              });
+            }
+          },
+        );
+      }
+    }
+
+    // Priority 2: Default user image from user.image field
+    final userImage = transaction.taskAssignment.tasker?.user?.image ??
+        transaction.taskAssignment.tasker?.user?.imageName;
+    if (userImage != null && userImage.isNotEmpty && userImage != "Unknown") {
+      return DecorationImage(
+        image: NetworkImage(userImage),
+        fit: BoxFit.cover,
+        onError: (exception, stackTrace) {
+          debugPrint('Error loading default tasker image: $exception');
+        },
+      );
+    }
+
+    return null;
   }
 
   void _filterTransactions() {
@@ -415,11 +594,6 @@ class _TransactionHistoryPageState extends State<TransactionHistoryPage>
   }
 
   Widget _buildTransactionInfo(Transactions transaction, {double size = 40.0}) {
-    final imageUrl =
-        transaction.taskAssignment.tasker?.user?.image ?? 'Unknown';
-    final hasValidImage =
-        imageUrl != null && imageUrl.isNotEmpty && imageUrl != 'Unknown';
-
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -439,24 +613,11 @@ class _TransactionHistoryPageState extends State<TransactionHistoryPage>
                   offset: const Offset(0, 2),
                 ),
               ],
+              image: _getTaskerProfileImageDecoration(transaction),
             ),
-            child: hasValidImage
-                ? CachedNetworkImage(
-                    imageUrl: imageUrl,
-                    fit: BoxFit.cover,
-                    placeholder: (context, url) => const Center(
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: Color(0xFFB71A4A),
-                      ),
-                    ),
-                    errorWidget: (context, url, error) => const Icon(
-                      Icons.person,
-                      color: Colors.grey,
-                      size: 24,
-                    ),
-                  )
-                : const Icon(Icons.person, color: Colors.grey, size: 24),
+            child: _getTaskerProfileImageDecoration(transaction) == null
+                ? const Icon(Icons.person, color: Colors.grey, size: 24)
+                : null,
           ),
         ),
         const SizedBox(width: 8),
@@ -598,222 +759,228 @@ class _TransactionHistoryPageState extends State<TransactionHistoryPage>
                 ),
               ),
 
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0),
-              child: Row(
-                children: [
-                  // Income Card changed to Deposit Card
-                  Expanded(
-                    child: Card(
-                      elevation: 1,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      child: InkWell(
-                        onTap: () {
-                          if(user?.user.accStatus == "Pending"){
-                            showDialog(
-                              context: context,
-                              builder: (BuildContext context) => Modal(
-                                modalTitle: "Account Verification",
-                                description: "You Haven't fully verified your Account yet. Please Verify first in order to deposit.",
-                                buttonText: "Verify Now",
-                                onPressed: () async {
-                                  Navigator.pop(context);
-                                  final result = await Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                        builder: (context) => const VerificationPage()),
-                                  ).then((value) async {
-                                    await _loadData();
-                                  });
-                                  if (result == true) {
-                                    setState(() {
-                                      _isLoading = true;
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                child: Row(
+                  children: [
+                    // Income Card changed to Deposit Card
+                    Expanded(
+                      child: Card(
+                        elevation: 1,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: InkWell(
+                          onTap: () {
+                            if (user?.user.accStatus == "Pending") {
+                              showDialog(
+                                context: context,
+                                builder: (BuildContext context) => Modal(
+                                  modalTitle: "Account Verification",
+                                  description:
+                                      "You Haven't fully verified your Account yet. Please Verify first in order to deposit.",
+                                  buttonText: "Verify Now",
+                                  onPressed: () async {
+                                    Navigator.pop(context);
+                                    final result = await Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                          builder: (context) =>
+                                              const VerificationPage()),
+                                    ).then((value) async {
+                                      await _loadData();
                                     });
-                                    await _loadData();
-                                  } else {
-                                    setState(() {
-                                      _isUploadDialogShown = false;
-                                    });
-                                  }
-                                },
-                              ),
-                            );
-                          }else if(user?.user.accStatus == null){
-                            showDialog(
-                              context: context,
-                              builder: (BuildContext context) => Modal(
-                                modalTitle: "No Internet Connection",
-                                description: "Please Check Your Connection and Try Again.",
-                                buttonText: "Okay",
-                                onPressed: () {
-                                  _loadData();
-                                  Navigator.pop(context);
-                                },
-                              ),
-                            );
-                          }else{
-                            Navigator.push(context, MaterialPageRoute(
-                              builder: (context) {
-                                return PaymentProcessingPage(
-                                  transferMethod: "deposit",
-                                );
-                              },
-                            ));
-                          }
-                          // Show deposit dialog
-                        },
-                        borderRadius: BorderRadius.circular(16),
-                        child: Padding(
-                          padding: const EdgeInsets.all(16.0),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                children: [
-                                  CircleAvatar(
-                                    radius: 16,
-                                    backgroundColor: Colors.green[50],
-                                    child: Icon(
-                                      Icons.arrow_downward,
-                                      color: Colors.green,
-                                      size: 16,
-                                    ),
-                                  ),
-                                  SizedBox(width: 8),
-                                  Text(
-                                    'Deposit',
-                                    style: GoogleFonts.poppins(
-                                      color: Colors.grey,
-                                      fontSize: 14,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              SizedBox(height: 8),
-                              Text(
-                                'Tap to deposit',
-                                style: GoogleFonts.poppins(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.green[400],
+                                    if (result == true) {
+                                      setState(() {
+                                        _isLoading = true;
+                                      });
+                                      await _loadData();
+                                    } else {
+                                      setState(() {
+                                        _isUploadDialogShown = false;
+                                      });
+                                    }
+                                  },
                                 ),
-                              ),
-                            ],
+                              );
+                            } else if (user?.user.accStatus == null) {
+                              showDialog(
+                                context: context,
+                                builder: (BuildContext context) => Modal(
+                                  modalTitle: "No Internet Connection",
+                                  description:
+                                      "Please Check Your Connection and Try Again.",
+                                  buttonText: "Okay",
+                                  onPressed: () {
+                                    _loadData();
+                                    Navigator.pop(context);
+                                  },
+                                ),
+                              );
+                            } else {
+                              Navigator.push(context, MaterialPageRoute(
+                                builder: (context) {
+                                  return PaymentProcessingPage(
+                                    transferMethod: "deposit",
+                                  );
+                                },
+                              ));
+                            }
+                            // Show deposit dialog
+                          },
+                          borderRadius: BorderRadius.circular(16),
+                          child: Padding(
+                            padding: const EdgeInsets.all(16.0),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  children: [
+                                    CircleAvatar(
+                                      radius: 16,
+                                      backgroundColor: Colors.green[50],
+                                      child: Icon(
+                                        Icons.arrow_downward,
+                                        color: Colors.green,
+                                        size: 16,
+                                      ),
+                                    ),
+                                    SizedBox(width: 8),
+                                    Text(
+                                      'Deposit',
+                                      style: GoogleFonts.poppins(
+                                        color: Colors.grey,
+                                        fontSize: 14,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                SizedBox(height: 8),
+                                Text(
+                                  'Tap to deposit',
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.green[400],
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
                         ),
                       ),
                     ),
-                  ),
-                  SizedBox(width: 16),
-                  // Withdraw Button
-                  Expanded(
-                    child: Card(
-                      elevation: 1,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      child: InkWell(
-                        onTap: () {
-                          if(user?.user.accStatus == "Pending"){
-                            showDialog(
-                              context: context,
-                              builder: (BuildContext context) => Modal(
-                                modalTitle: "Account Verification",
-                                description: "You Haven't fully verified your Account yet. Please Verify first in order to deposit.",
-                                buttonText: "Verify Now",
-                                onPressed: () async {
-                                  Navigator.pop(context);
-                                  final result = await Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                        builder: (context) => const VerificationPage()),
-                                  ).then((value) async {
-                                    await _loadData();
-                                  });
-                                  if (result == true) {
-                                    setState(() {
-                                      _isLoading = true;
+                    SizedBox(width: 16),
+                    // Withdraw Button
+                    Expanded(
+                      child: Card(
+                        elevation: 1,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: InkWell(
+                          onTap: () {
+                            if (user?.user.accStatus == "Pending") {
+                              showDialog(
+                                context: context,
+                                builder: (BuildContext context) => Modal(
+                                  modalTitle: "Account Verification",
+                                  description:
+                                      "You Haven't fully verified your Account yet. Please Verify first in order to deposit.",
+                                  buttonText: "Verify Now",
+                                  onPressed: () async {
+                                    Navigator.pop(context);
+                                    final result = await Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                          builder: (context) =>
+                                              const VerificationPage()),
+                                    ).then((value) async {
+                                      await _loadData();
                                     });
-                                    await _loadData();
-                                  } else {
-                                    setState(() {
-                                      _isUploadDialogShown = false;
-                                    });
-                                  }
-                                },
-                              ),
-                            );
-                            return;
-                          }else if(user?.user.accStatus == null){
-                            showDialog(
-                              context: context,
-                              builder: (BuildContext context) => Modal(
-                                modalTitle: "No Internet Connection",
-                                description: "Please Check Your Connection and Try Again.",
-                                buttonText: "Okay",
-                                onPressed: () {
-                                  _loadData();
-                                  Navigator.pop(context);
-                                },
-                              ),
-                            );
-                            return;
-                          }
+                                    if (result == true) {
+                                      setState(() {
+                                        _isLoading = true;
+                                      });
+                                      await _loadData();
+                                    } else {
+                                      setState(() {
+                                        _isUploadDialogShown = false;
+                                      });
+                                    }
+                                  },
+                                ),
+                              );
+                              return;
+                            } else if (user?.user.accStatus == null) {
+                              showDialog(
+                                context: context,
+                                builder: (BuildContext context) => Modal(
+                                  modalTitle: "No Internet Connection",
+                                  description:
+                                      "Please Check Your Connection and Try Again.",
+                                  buttonText: "Okay",
+                                  onPressed: () {
+                                    _loadData();
+                                    Navigator.pop(context);
+                                  },
+                                ),
+                              );
+                              return;
+                            }
 
-                          // Show withdraw dialog
-                          Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                  builder: (context) => PaymentProcessingPage(
-                                      transferMethod: "withdraw")));
-                        },
-                        borderRadius: BorderRadius.circular(16),
-                        child: Padding(
-                          padding: const EdgeInsets.all(16.0),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                children: [
-                                  CircleAvatar(
-                                    radius: 16,
-                                    backgroundColor: Colors.red[50],
-                                    child: Icon(
-                                      Icons.arrow_upward,
-                                      color: Colors.red,
-                                      size: 16,
+                            // Show withdraw dialog
+                            Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) => PaymentProcessingPage(
+                                        transferMethod: "withdraw")));
+                          },
+                          borderRadius: BorderRadius.circular(16),
+                          child: Padding(
+                            padding: const EdgeInsets.all(16.0),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  children: [
+                                    CircleAvatar(
+                                      radius: 16,
+                                      backgroundColor: Colors.red[50],
+                                      child: Icon(
+                                        Icons.arrow_upward,
+                                        color: Colors.red,
+                                        size: 16,
+                                      ),
                                     ),
-                                  ),
-                                  SizedBox(width: 8),
-                                  Text(
-                                    'Withdraw',
-                                    style: GoogleFonts.poppins(
-                                      color: Colors.grey,
-                                      fontSize: 14,
+                                    SizedBox(width: 8),
+                                    Text(
+                                      'Withdraw',
+                                      style: GoogleFonts.poppins(
+                                        color: Colors.grey,
+                                        fontSize: 14,
+                                      ),
                                     ),
-                                  ),
-                                ],
-                              ),
-                              SizedBox(height: 8),
-                              Text(
-                                'Tap to withdraw',
-                                style: GoogleFonts.poppins(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.red[400],
+                                  ],
                                 ),
-                              ),
-                            ],
+                                SizedBox(height: 8),
+                                Text(
+                                  'Tap to withdraw',
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.red[400],
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
                         ),
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
 
               // Transaction History
               Padding(
