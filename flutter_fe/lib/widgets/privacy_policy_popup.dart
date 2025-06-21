@@ -4,7 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 class PrivacyPolicyPopup extends StatefulWidget {
   final String?
       context; // 'task_assignment' or null for default account creation
-  const PrivacyPolicyPopup({Key? key, this.context}) : super(key: key);
+  const PrivacyPolicyPopup({super.key, this.context});
 
   @override
   State<PrivacyPolicyPopup> createState() => _PrivacyPolicyPopupState();
@@ -217,7 +217,7 @@ class _PrivacyPolicyPopupState extends State<PrivacyPolicyPopup>
                   textAlign: TextAlign.center,
                 ),
                 SizedBox(height: 20),
-                Container(
+                SizedBox(
                   height: 300,
                   child: SingleChildScrollView(
                     child: Column(

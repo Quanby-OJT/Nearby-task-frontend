@@ -234,7 +234,7 @@ class _TaskerHomePageState extends State<TaskerHomePage>
       });
 
       // Fetch profile image from tasker_images table if user is a tasker
-      if (user.user.role?.toLowerCase() == 'tasker') {
+      if (user.user.role.toLowerCase() == 'tasker') {
         // Use user.user.id if it's valid, otherwise use the original userId from storage
         final userIdToUse = (user.user.id != null && user.user.id! > 0)
             ? user.user.id!
@@ -1102,7 +1102,7 @@ class _TaskerHomePageState extends State<TaskerHomePage>
                                   return _buildNoImagePlaceholder(imageHeight);
                                 }
                                 final image = task.imageUrls![imageIndex];
-                                return Container(
+                                return SizedBox(
                                   width: double.infinity,
                                   child: Image.network(
                                     image.image_url.isNotEmpty

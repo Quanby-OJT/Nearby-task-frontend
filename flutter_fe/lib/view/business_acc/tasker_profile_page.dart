@@ -430,7 +430,7 @@ class _TaskerProfilePageState extends State<TaskerProfilePage>
                                           .toString()
                                           .isEmpty))
                               ? Text(
-                                  "${widget.tasker.user?.firstName?[0] ?? ''}${widget.tasker.user?.lastName?[0] ?? ''}",
+                                  "${widget.tasker.user?.firstName[0] ?? ''}${widget.tasker.user?.lastName[0] ?? ''}",
                                   style: GoogleFonts.poppins(
                                     fontSize: 32,
                                     fontWeight: FontWeight.bold,

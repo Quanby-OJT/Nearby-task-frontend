@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:app_links/app_links.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_fe/view/custom_loading/custom_loading.dart';
 import 'package:flutter_fe/view/sign_in/reset_password.dart';
@@ -69,7 +68,7 @@ class _ForgotPasswordState extends State<ForgotPassword>
   }
 
   Future<void> _handleDeepLink(Uri? uri) async {
-    if(uri == null) return;
+    if (uri == null) return;
     final token = uri.queryParameters['token'];
     final email = uri.queryParameters['email'];
 

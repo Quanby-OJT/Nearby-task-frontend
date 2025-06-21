@@ -18,20 +18,6 @@ class ApiService {
   static final http.Client _client = http.Client();
   static final Map<String, String> _cookies = {};
 
-  // static void _updateCookies(http.Response response) {
-  //   String? rawCookie = response.headers['set-cookie'];
-  //   debugPrint('Raw Cookie: $rawCookie');
-  //
-  //   List<String> cookieParts = rawCookie!.split(',');
-  //   for (String part in cookieParts) {
-  //     List<String> keyValue = part.split(';')[0].split('=');
-  //     if (keyValue.length == 2) {
-  //       _cookies[keyValue[0].trim()] = keyValue[1].trim();
-  //     }
-  //   }
-  //   print('Updated Cookies: $_cookies'); // Debugging
-  // }
-
   Future<Map<String, dynamic>> _getRequest(String endpoint) async {
     final token = await AuthService.getSessionToken();
     try {

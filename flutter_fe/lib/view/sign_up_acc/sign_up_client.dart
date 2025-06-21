@@ -161,7 +161,7 @@ class _SignUpClientAccState extends State<SignUpClientAcc> {
       if (_signatureImage != null) {
         final bytes = await _signatureImage!.readAsBytes();
         signatureData = base64Encode(bytes);
-      } else if (!_signatureController.isEmpty) {
+      } else if (_signatureController.isNotEmpty) {
         final bytes = await _signatureController.toPngBytes();
         if (bytes != null) {
           signatureData = base64Encode(bytes);
@@ -187,13 +187,13 @@ class _SignUpClientAccState extends State<SignUpClientAcc> {
   }
 
   void _launchURL(String url) async {
-  final Uri uri = Uri.parse(url);
-  if (await canLaunchUrl(uri)) {
-    await launchUrl(uri, mode: LaunchMode.externalApplication);
-  } else {
-    throw 'Could not launch $url';
+    final Uri uri = Uri.parse(url);
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    } else {
+      throw 'Could not launch $url';
+    }
   }
-}
 
   @override
   Widget build(BuildContext context) {
@@ -521,49 +521,50 @@ class _SignUpClientAccState extends State<SignUpClientAcc> {
                     ),
                     SizedBox(height: 20),
                     //Privacy Policy and Terms of Service
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      children: [
-                        Checkbox(
-                          value: _agreeToTerms,
-                          onChanged: (bool? value) {
-                            setState(() {
-                              _agreeToTerms = value ?? false;
-                            });
-                          },
-                          activeColor: const Color(0xFFB71A4A),
-                        ),
-                        Expanded(
+                    Row(mainAxisAlignment: MainAxisAlignment.start, children: [
+                      Checkbox(
+                        value: _agreeToTerms,
+                        onChanged: (bool? value) {
+                          setState(() {
+                            _agreeToTerms = value ?? false;
+                          });
+                        },
+                        activeColor: const Color(0xFFB71A4A),
+                      ),
+                      Expanded(
                           child: RichText(
-                            text: TextSpan(
-                              style: GoogleFonts.poppins(
-                                color: Colors.black,
-                                fontWeight: FontWeight.w300,
-                                fontSize: 12,
-                              ),
-                              children: [
-                                const TextSpan(text: 'By signing up, you agree to our '),
+                        text: TextSpan(
+                          style: GoogleFonts.poppins(
+                            color: Colors.black,
+                            fontWeight: FontWeight.w300,
+                            fontSize: 12,
+                          ),
+                          children: [
+                            const TextSpan(
+                                text: 'By signing up, you agree to our '),
 
-                                TextSpan(
-                                  text: 'Terms of Service.',
-                                  style: const TextStyle(color: Color(0xFFB71A4A), decoration: TextDecoration.underline),
-                                  recognizer: TapGestureRecognizer()..onTap = () => Navigator.push(
+                            TextSpan(
+                              text: 'Terms of Service.',
+                              style: const TextStyle(
+                                  color: Color(0xFFB71A4A),
+                                  decoration: TextDecoration.underline),
+                              recognizer: TapGestureRecognizer()
+                                ..onTap = () => Navigator.push(
                                     context,
-                                    MaterialPageRoute(builder: (context) => const LegalTermsAndConditionsScreen())
-                                  ),
-                                ),
-                                // const TextSpan(text: ' and '),
-                                // TextSpan(
-                                //   text: 'Privacy Policy',
-                                //   style: const TextStyle(color: Color(0xFFB71A4A), decoration: TextDecoration.underline),
-                                //   // recognizer: TapGestureRecognizer()..onTap = () => _launchURL('YOUR_PRIVACY_POLICY_URL'),
-                                // ),
-                              ],
+                                    MaterialPageRoute(
+                                        builder: (context) =>
+                                            const LegalTermsAndConditionsScreen())),
                             ),
-                          )
-                        )
-                      ]
-                    ),
+                            // const TextSpan(text: ' and '),
+                            // TextSpan(
+                            //   text: 'Privacy Policy',
+                            //   style: const TextStyle(color: Color(0xFFB71A4A), decoration: TextDecoration.underline),
+                            //   // recognizer: TapGestureRecognizer()..onTap = () => _launchURL('YOUR_PRIVACY_POLICY_URL'),
+                            // ),
+                          ],
+                        ),
+                      ))
+                    ]),
                     SizedBox(
                       height: 50,
                       width: double.infinity,

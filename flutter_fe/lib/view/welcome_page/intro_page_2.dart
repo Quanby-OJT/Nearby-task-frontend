@@ -47,7 +47,7 @@ class IntroPage2 extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     // Custom illustration - Collaboration theme - responsive
-                    Container(
+                    SizedBox(
                       height: illustrationHeight,
                       child: Stack(
                         alignment: Alignment.center,

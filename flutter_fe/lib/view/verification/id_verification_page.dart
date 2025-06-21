@@ -27,7 +27,7 @@ class _IdVerificationPageState extends State<IdVerificationPage> {
   String? _detectedIdType;
   List<String> _extractedText = [];
   bool _isLoading = false;
-  bool _isProcessingImage = false;
+  final bool _isProcessingImage = false;
   bool _isVerified = false;
   String? _idImageUrl;
   String? _verificationStatus;
@@ -138,7 +138,7 @@ class _IdVerificationPageState extends State<IdVerificationPage> {
           debugPrint('Verification Status: $_verificationStatus');
           debugPrint(
               'Has Image Check: ${_idImage != null || _idImageUrl != null}');
-          debugPrint('Can Proceed: ${_canProceed}');
+          debugPrint('Can Proceed: $_canProceed');
           debugPrint('_idImageUrl is null: ${_idImageUrl == null}');
           debugPrint('_idImageUrl is empty: ${_idImageUrl?.isEmpty}');
           debugPrint('================================');

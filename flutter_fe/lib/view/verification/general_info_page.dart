@@ -42,7 +42,7 @@ class _GeneralInfoPageState extends State<GeneralInfoPage> {
   String? _gender;
   DateTime? _birthdate;
   bool _isLoading = false;
-  bool _isUploadingImage = false;
+  final bool _isUploadingImage = false;
   String? _userRole;
   File? _profileImage;
   String? _uploadedImageUrl;
@@ -146,8 +146,8 @@ class _GeneralInfoPageState extends State<GeneralInfoPage> {
           });
 
           // Fetch existing profile image for both taskers and clients
-          if (authUser.user.role?.toLowerCase() == 'tasker' ||
-              authUser.user.role?.toLowerCase() == 'client') {
+          if (authUser.user.role.toLowerCase() == 'tasker' ||
+              authUser.user.role.toLowerCase() == 'client') {
             // Use authUser.user.id if it's valid, otherwise use the original userId from storage
             final userIdToUse =
                 (authUser.user.id != null && authUser.user.id! > 0)
@@ -385,8 +385,9 @@ class _GeneralInfoPageState extends State<GeneralInfoPage> {
                                               fit: BoxFit.cover,
                                               loadingBuilder: (context, child,
                                                   loadingProgress) {
-                                                if (loadingProgress == null)
+                                                if (loadingProgress == null) {
                                                   return child;
+                                                }
                                                 return Center(
                                                   child:
                                                       CircularProgressIndicator(

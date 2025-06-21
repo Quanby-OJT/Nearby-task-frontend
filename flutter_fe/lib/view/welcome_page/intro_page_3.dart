@@ -48,7 +48,7 @@ class IntroPage3 extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     // Custom illustration - Skills and earning theme - responsive
-                    Container(
+                    SizedBox(
                       height: illustrationHeight,
                       child: Stack(
                         alignment: Alignment.center,

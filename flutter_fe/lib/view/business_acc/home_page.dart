@@ -596,7 +596,7 @@ class _ClientHomePageState extends State<ClientHomePage>
   Future<void> _fetchClientProfileImage() async {
     try {
       final userId = storage.read('user_id');
-      if (userId != null && _user?.user.role?.toLowerCase() == 'client') {
+      if (userId != null && _user?.user.role.toLowerCase() == 'client') {
         debugPrint("Fetching client profile image for user ID: $userId");
         final clientService = ClientServices();
         final result =
@@ -1441,7 +1441,7 @@ class _ClientHomePageState extends State<ClientHomePage>
                                                               SizedBox(
                                                                   height: 4),
                                                               Text(
-                                                                'URL: ${profileImageUrl?.substring(0, 50)}...',
+                                                                'URL: ${profileImageUrl.substring(0, 50)}...',
                                                                 style:
                                                                     TextStyle(
                                                                   color: Colors

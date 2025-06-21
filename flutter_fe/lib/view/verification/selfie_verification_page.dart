@@ -104,7 +104,7 @@ class _SelfieVerificationPageState extends State<SelfieVerificationPage> {
           debugPrint('Verification Status: $_verificationStatus');
           debugPrint(
               'Has Selfie Check: ${_selfieImage != null || _selfieImageUrl != null}');
-          debugPrint('Can Proceed: ${_canProceed}');
+          debugPrint('Can Proceed: $_canProceed');
           debugPrint('_selfieImageUrl is null: ${_selfieImageUrl == null}');
           debugPrint('_selfieImageUrl is empty: ${_selfieImageUrl?.isEmpty}');
           debugPrint('=======================================');
