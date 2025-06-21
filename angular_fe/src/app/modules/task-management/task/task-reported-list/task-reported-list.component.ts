@@ -58,7 +58,7 @@ export class TaskReportedListComponent implements OnInit {
     if (!this.task?.task_id) return;
 
     if (this.userRole === 'Moderator' && this.task.action_by_user?.user_role === 'Admin') {
-      await Swal.fire('Error', "You don't have authority to take action here since this action is made by an admin", 'error');
+      await Swal.fire('Access Denied', "You don't have authority to take action here since this action is made by an admin", 'error');
       return;
     }
 
@@ -117,7 +117,7 @@ export class TaskReportedListComponent implements OnInit {
     if (!this.task?.task_id) return;
 
     if (this.userRole === 'Moderator' && this.task.action_by_user?.user_role === 'Admin') {
-      await Swal.fire('Error', "You don't have authority to take action here since this action is made by an admin", 'error');
+      await Swal.fire('Access Denied', "You don't have authority to take action here since this action is made by an admin", 'error');
       return;
     }
 

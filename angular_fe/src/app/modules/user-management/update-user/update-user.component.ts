@@ -237,7 +237,7 @@ export class UpdateUserComponent {
 
     // Check if current user is Moderator and prior action was by Admin
     if (this.userRole === 'Moderator' && this.userData?.action_by_user?.user_role === 'Admin') {
-      await Swal.fire('Error', "You don't have authority to take action here since this action is made by an admin", 'error');
+      await Swal.fire('Access Denied', "You don't have authority to take action here since this action is made by an admin", 'error');
       return;
     }
 

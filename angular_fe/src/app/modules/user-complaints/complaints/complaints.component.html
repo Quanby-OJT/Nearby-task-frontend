@@ -9,14 +9,15 @@
   </div>
 </div>
 
-<div *ngIf="!isLoading" class="flex w-full max-w-[1440px] mx-auto flex-col pb-3">
+<div *ngIf="!isLoading" class="flex min-w-full mx-auto flex-col pb-3">
   <div class="flex w-full space-x-3">
     <app-report-card (reportSelected)="openModal($event)"></app-report-card>
   </div>
 </div>
 
-<div *ngIf="!isLoading" class="flex justify-end w-full max-w-[1440px] mx-auto px-4">
-  <div class="flex items-end space-x-4">
+<div *ngIf="!isLoading" class="mb-4 flex justify-between">
+  <div class="inline-block"></div>
+  <div class="flex space-x-4">
     <button class="bg-[#5F50E7] text-[#F9F9F9] hover:bg-[#8174ED] cursor-pointer rounded-md px-4 py-2.5 text-xs font-semibold hover:scale-120 transition-transform duration-500 flex items-center space-x-2" (click)="exportCSV()">
       <svg-icon src="./assets/icons/heroicons/outline/csvDL.svg" [svgClass]="'h-5 w-5'"></svg-icon>
       <span>Export CSV</span>
@@ -29,8 +30,8 @@
 </div>
 <div class="py-2"></div>
 
-<div *ngIf="!isLoading && userRole === 'Moderator'" class="border-gray-200 w-full max-w-[1440px] mx-auto flex-col rounded-xl min-h-[400px] shadow-md">
-  <div class="border-gray-200 bg-white flex w-full max-w-[1440px] mx-auto flex-col rounded-xl border p-4">
+<div *ngIf="!isLoading && userRole === 'Moderator'" class="border-gray-200 min-w-full mx-auto flex-col rounded-xl min-h-[400px] shadow-md">
+  <div class="border-gray-200 bg-white flex min-w-full mx-auto flex-col rounded-xl border p-4">
     <div class="flex flex-wrap items-center justify-between gap-2 py-3 px-5">
       <div class="text-muted-foreground text-sm font-medium"></div>
       <div class="flex flex-wrap items-center gap-2 w-full lg:w-auto">
@@ -42,11 +43,18 @@
             <input name="search" class="w-full py-2 pl-8 pr-2 border rounded-md" placeholder="Moderator Search Users" type="text" (input)="searchReports($event)" />
           </label>
         </div>
-        <select name="status" class="text-muted-foreground w-28! p-2 border rounded-md" (change)="filterReports($event)">
-          <option value="">All Status</option>
-          <option value="pending">Pending</option>
-          <option value="processed">Processed</option>
-        </select>
+        <div class="relative">
+          <select name="status" class="text-muted-foreground w-28! p-2 border rounded-md" (change)="filterReports($event)">
+            <option value="">All Status</option>
+            <option value="pending">Pending <span *ngIf="filterService.pendingCount() > 0" class="ml-1 text-red-500 font-medium">({{ filterService.pendingCount() }})</span></option>
+            <option value="processed">Processed</option>
+          </select>
+          <!-- Notification badge for the select element -->
+          <div *ngIf="filterService.pendingCount() > 0" 
+              class="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
+            {{ filterService.pendingCount() }}
+          </div>
+        </div>
       </div>
     </div>
 
@@ -177,8 +185,8 @@
 
 <br>
 
-<div *ngIf="!isLoading && userRole === 'Admin'" class="border-gray-200 w-full max-w-[1440px] mx-auto flex-col rounded-xl min-h-[400px] shadow-md">
-  <div class="border-gray-200 bg-white flex w-full max-w-[1440px] mx-auto flex-col rounded-xl border p-4">
+<div *ngIf="!isLoading && userRole === 'Admin'" class="border-gray-200 min-w-full mx-auto flex-col rounded-xl min-h-[400px] shadow-md">
+  <div class="border-gray-200 bg-white flex min-w-full mx-auto flex-col rounded-xl border p-4">
     <div class="flex flex-wrap items-center justify-between gap-2 py-3 px-5">
       <div class="text-muted-foreground text-sm font-medium"></div>
       <div class="flex flex-wrap items-center gap-2 w-full lg:w-auto">
@@ -190,11 +198,18 @@
             <input name="search" class="w-full py-2 pl-8 pr-2 border rounded-md" placeholder="Admin Search Users" type="text" (input)="searchReports($event)" />
           </label>
         </div>
-        <select name="status" class="text-muted-foreground w-28! p-2 border rounded-md" (change)="filterReports($event)">
-          <option value="">All Status</option>
-          <option value="pending">Pending</option>
-          <option value="processed">Processed</option>
-        </select>
+        <div class="relative">
+          <select name="status" class="text-muted-foreground w-28! p-2 border rounded-md" (change)="filterReports($event)">
+            <option value="">All Status</option>
+            <option value="pending">Pending <span *ngIf="filterService.pendingCount() > 0" class="ml-1 text-red-500 font-medium">({{ filterService.pendingCount() }})</span></option>
+            <option value="processed">Processed</option>
+          </select>
+          <!-- Notification badge for the select element -->
+          <div *ngIf="filterService.pendingCount() > 0" 
+              class="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
+            {{ filterService.pendingCount() }}
+          </div>
+        </div>
       </div>
     </div>
 

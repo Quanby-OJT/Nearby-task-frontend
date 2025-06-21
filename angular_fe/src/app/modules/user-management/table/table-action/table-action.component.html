@@ -17,26 +17,33 @@
     </div>
     <div class="flex flex-wrap gap-2.5">
       <select name="role" class="text-muted-foreground w-28! p-2 hover: cursor-pointer" (change)="onRoleChange($event)">
-        <option value="">All Role</option>
+        <option value="">User Role</option>
         <option value="1">Client</option>
         <option value="2">Tasker</option>
         <option value="3">Moderator</option>
         <option value="4">Admin</option>
       </select>
-      <select name="account" class="text-muted-foreground w-28! p-2 hover: cursor-pointer" (change)="onStatusChange($event)">
-        <option value="">All Account</option>
-        <option value="1">Pending</option>
-        <option value="2">Active</option>
-        <option value="3">Warn</option>
-        <option value="4">Suspend</option>
-        <option value="5">Ban</option>
-        <option value="6">Block</option>
-        <option value="7">Deactivate</option>
-        <option value="8">Review</option>
-      </select>
+      <div class="relative">
+        <select name="account" class="text-muted-foreground w-35! p-2 hover: cursor-pointer" (change)="onStatusChange($event)">
+          <option value="">Account Status</option>
+          <option value="1">Pending</option>
+          <option value="2">Active</option>
+          <option value="3">Warn</option>
+          <option value="4">Suspend</option>
+          <option value="5">Ban</option>
+          <option value="6">Block</option>
+          <option value="7">Deactivate</option>
+          <option value="8">Review <span *ngIf="filterService.reviewCount() > 0" class="ml-1 text-red-500 font-medium">({{ filterService.reviewCount() }})</span></option>
+        </select>
+        <!-- Notification badge for the select element -->
+        <div *ngIf="filterService.reviewCount() > 0" 
+            class="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
+          {{ filterService.reviewCount() }}
+        </div>
+      </div>
 
       <select name="status" class="text-muted-foreground w-28! p-2 hover:cursor-pointer" (change)="onOnlineChange($event)">
-        <option value="">All Status</option>
+        <option value="">User Status</option>
         <option value="1">Online</option>
         <option value="2">Offline</option>
       </select>

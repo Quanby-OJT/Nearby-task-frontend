@@ -9,17 +9,9 @@
   </div>
 </div>
 
-<!-- Loading Spinner -->
-<div *ngIf="isLoading" class="fixed inset-0 z-50 flex flex-col justify-center items-center lg:w-308 lg:h-170 xl:w-420 xl:h-200 ">
-  <div class="animate-slow-spin text-xs text-[#3C28CC] flex flex-col justify-center items-center">
-    <svg-icon src="./assets/icons/heroicons/outline/logo.svg" [svgClass]="'h-20 w-20'"></svg-icon>
-    <strong>Nearby Task</strong>
-  </div>
-</div>
-
 <!-- Bottom Container -->
-<div *ngIf="!isLoading" class="bg-white w-full max-w-[1440px] mx-auto flex-col rounded-xl min-h-[400px] shadow-md p-6">
-  <div class="flex justify-start">
+<div class="bg-white w-full min-w-full mx-auto flex-col rounded-xl min-h-[400px] shadow-md p-6">
+  <div class="flex justify-end">
     <div class="space-x-5 min-w-[300px]">
       <button type="button" class="bg-[#5F50E7] text-[#F9F9F9] hover:bg-[#8174ED] cursor-pointer rounded-md px-4 py-2.5 text-xs font-semibold hover:scale-120 transition-transform duration-500 w-36" (click)="changeTab('MostFamousSpecialization')">Top Specialization</button>
       <button type="button" class="bg-[#5F50E7] text-[#F9F9F9] hover:bg-[#8174ED] cursor-pointer rounded-md px-4 py-2.5 text-xs font-semibold hover:scale-120 transition-transform duration-500 w-36" (click)="changeTab('MostFamousTask')">Top Jobs</button>
@@ -28,8 +20,17 @@
       <button type="button" class="bg-[#5F50E7] text-[#F9F9F9] hover:bg-[#8174ED] cursor-pointer rounded-md px-4 py-2.5 text-xs font-semibold hover:scale-120 transition-transform duration-500 w-36" (click)="changeTab('BestClients')">Best Clients</button>
     </div>
   </div>
+  <div class="py-2"></div>
+  <!-- Loading Spinner for Tab Content -->
+  <div *ngIf="isLoading" class="flex justify-center items-center min-h-[400px] w-full">
+    <div class="animate-slow-spin text-xs text-[#3C28CC] flex flex-col justify-center items-center">
+      <svg-icon src="./assets/icons/heroicons/outline/logo.svg" [svgClass]="'h-20 w-20'"></svg-icon>
+      <strong>Nearby Task</strong>
+    </div>
+  </div>
 
-  <div>
+  <!-- Tab Content -->
+  <div *ngIf="!isLoading">
     <div *ngIf="currentTab == 'MostFamousTask'">
     <app-job></app-job>
     </div>

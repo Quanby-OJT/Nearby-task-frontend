@@ -41,17 +41,18 @@ export class LogComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.loadingService.show();
+    this.isLoading = true;
     this.logsSubscription = this.userlogService.getUserLogs().subscribe({
       next: (logs: Log[]) => {
         this.logs = logs;
         this.filteredLogs = [...logs];
         this.updatePage();
-        this.isLoading = true;
+        this.isLoading = false;
         this.loadingService.hide();
       },
       error: (error) => {
         console.error("Error getting logs:", error);
-        this.isLoading = true;
+        this.isLoading = false;
         this.loadingService.hide();
       }
     });

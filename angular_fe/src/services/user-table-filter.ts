@@ -12,6 +12,7 @@ export class UserTableFilterService {
   pageSizeField = signal<number>(5);
   currentPageField = signal<number>(1);
   userSizeField = signal(0);
+  reviewCount = signal<number>(0);
 
   private allUsers = signal<any[]>([]);
   currentUsers = signal<any[]>([]);
@@ -27,6 +28,8 @@ export class UserTableFilterService {
   setUsers(users: any[]) {
     this.allUsers.set(users);
     this.userSizeField.set(users.length);
+    // Update review count
+    this.reviewCount.set(users.filter(user => user.acc_status === 'Review').length);
   }
 
   setCurrentUsers(users: any[]) {
